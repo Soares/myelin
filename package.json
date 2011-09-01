@@ -1,0 +1,22 @@
+{
+    "name": "myelin",
+    "description": "Connect Backbone models to forms using Synapse",
+    "version": "0.0.0",
+    "author": "Nate Soares <nate@natesoares.com>",
+    "repository": {"type": "git", "url": "git://github.com/Soares/myelin.git"},
+    "dependencies": {
+        "backbone": "0.x",
+        "underscore": "1.x",
+        "coffee-script": "1.x",
+        "bcrypt": "0.x",
+        "browserify": "1.x",
+    },
+    "devDependencies": {
+        "vows": "0.5.x"
+    },
+    "keywords": ["backbone", "synapse", "coffeescript", "relational", "forms",
+         "automatic"],
+    "main": "./lib/myelin",
+    "engines": {"node": ">= 0.4.1"},
+    "contributors": []
+}
