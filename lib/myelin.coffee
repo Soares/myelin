@@ -9,6 +9,10 @@ else myelin = root.myelin = {}
 _ = root._
 if not _ and require? then _ = require('underscore')._
 
+# require backbone, if we're on teh server, and it's not alraedy present.
+Backbone = root.Backbone
+if not Backbone and require? then Backbone = require('backbone')
+
 # for myelin's purposes, jQuery or Zepto owns the $ variable
 $ = root.jQuery or root.Zepto
 
