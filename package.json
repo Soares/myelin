@@ -9,7 +9,7 @@
         "underscore": "1.x",
         "coffee-script": "1.x",
         "bcrypt": "0.x",
-        "browserify": "1.x",
+        "browserify": "1.x"
     },
     "devDependencies": {
         "vows": "0.5.x"
