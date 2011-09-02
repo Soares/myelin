@@ -280,17 +280,9 @@ class Parser
     constructor: (@view, @options) ->
         @synapses = []
 
-    # True iff. the option is a valid attribute.
-    # Booleans, arrays and non-Axon objects are not allowed.
-    valid: (option) =>
-        option is null or
-            (_.isString option) or
-            (_.isFunction option) or
-            (option instanceof Axon)
-
     # Break a selector into the event componet (if any) and the selector.
     # Recognized events are white-listed in myelin.events.
-    interpret: (selector) =>
+    normalize: (selector) =>
         eventRegex = RegExp "^(#{myelin.events.join('|')})\\s+(.*)"
         match = selector.match eventRegex
         if match then return selector: match[2], event: match[1]
@@ -301,9 +293,9 @@ class Parser
         # Unroll arrays
         if _.isArray sync then _.map sync, @parse
         # Instantiate axon classes
-        else if isAxonClass sync then @make false, new sync
+        else if isAxonClass sync then @make axon: new sync
         # Send axons off without selectors
-        else if sync instanceof Axon then @make false, sync
+        else if sync instanceof Axon then @make axon: sync
         # Resolve functions with the view as their context
         else if _.isFunction sync then @parse sync.call @view
         # If they gave us just `string`, interpret it as an attribute
@@ -313,36 +305,38 @@ class Parser
         else @parsePair(key, value) for key, value of sync
         return this
 
-    # Parse a {selector: attribute} pair into a Synapse.
-    parsePair: (selector, attr) =>
-        # A `false` `attr` means 'ignore this selector'.
+    # Parse a {attribute: selector or axon} pair into a Synapse.
+    parsePair: (attr, option) =>
+        # A helper function to call the synapse maker function with
+        # attribute: attr set automatically
+        make = (ops) => @make _.extend attribute: attr, ops
+        # A falsy `option` means 'ignore this attribute'.
         # Allows resolved functions to say 'never mind'.
-        if attr is false then return
-        # {selector: true} means 'look the attr up at event time'.
-        # To a synapse, this is the same as a missing attr
-        else if attr is true then @make selector, null
-        # Given an array of attributes, make a synapse for each one.
-        else if _.isArray attr then @parsePair(selector, a) for a in attr
+        if (not option) then return
+        # {attr: true} means 'look the selector up at event time'.
+        # To a synapse, this is the same as a missing selector
+        else if (option is true then make()
+        # Given an array of selectors, make a synapse for each one.
+        else if _.isArray option then @parsePair(attr, o) for o in option
         # Given an axon class, we instantiate it and use it to make a synapse.
-        # The attribute will be looked up dynamically at event time.
-        else if isAxonClass attr then @make selector, new attr
-        # If `attr` is a non-axon function, resolve it with the view as the
+        else if isAxonClass option then make axon: new option
+        # Given an axon instanceo, we use it to make a synapse
+        else if option instanceof Axon then make option
+        # If `option` is a non-axon function, resolve it with the view as the
         # context and the selector as an argument.
-        else if _.isFunction attr
-            @parsePair selector, attr.call(@view, selector)
-        # Make sure that the attribute is valid before making the synapse.
-        else if @valid attr then @make selector, attr
+        else if _.isFunction option
+            @parsePair attr, option.call(@view, attr)
+        # If `option` is a selector, make sure to split off any event first
+        else if _.isString option then make @normalize option
         # Complain if the attr wasn't valid.
-        else throw new Error "Unrecognized sync option for #{selector}: #{attr}"
+        else throw new Error "Unrecognized sync option for #{attr}: #{option}"
         return this
 
     # Creates a synapse from `selector` and `desc`. `desc` can be anything that
     # makes it through @valid.
-    make: (selector, desc) =>
+    make: (attribute, option) =>
         # Use the options that the view gave us as parameters to each synapse.
-        options = _.extend (@interpret selector), @options
-        if _.isString desc then options.attribute = desc
-        else if desc instanceof Axon then options.axon = desc
+        options = _.extend (@interpret option), attribute: attribute, @options
         @synapses.push new Synapse options
         return this
 
@@ -364,41 +358,27 @@ class Parser
 #   * Function
 #       Called with the view as it's context. The result is recursively parsed.
 #   * Object
-#       Each key must be one of the @sync object keys below
-#       Each value must be one of the @sync object values below
-#
-# ## @sync object keys
-#   * 'this'
-#       If the object key is literally 'this', then the view's `el` will be
-#       watched and synced to the model
-#   * selector
-#       If the object key is a selector, then that selector (in the scope of
-#       the view's `el`) will be used to choose the elements that are watched
-#       and synced
-#   * event selector
-#       A key can also be an event name and a selector separated by whitespace.
-#       In this case, the selector will be used to choose the elements that are
-#       watched and synced, and the event will be used __instead__ of any
-#       axon's event.
+#       The object key must be the model attribute to be synced to
+#       The model value may be any one of the @sync object values below
 #
 # ## @sync object values
-#   * false
+#   * false (or any falsy value)
 #       A key with a false value will be ignored
 #   * true
-#       A key with a true value will look up the model attribute to use
-#       at event time, using myelin.attribute
-#   * null
-#       same as true
+#       A key with a true value will look up the axon and selector to use at
+#       event time, using myelin.lookup, myelin.default, and myelin.selector
 #   * Array
 #       {key: [val1, val2]} is identical to {key: val1, key: val2}
+#   * String
+#       String values represent an object selector. They can optionally be
+#       preceded with any event in myelin.events (the jQuery event list by
+#       default) to override Axon.event.
 #   * Axon class
 #       The given axon class will be instantiated and used to handle events.
 #   * Axon instance
 #       The given axon will be used to handle events.
-#   * String
-#       String values are the model attribute to be synced to.
 #   * Function
-#       Will be resolved with the view as the context and the selector as an
+#       Will be resolved with the view as the context and the attribute as an
 #       argument, then recursively re-parsed.
 class myelin.View extends Backbone.View
     constructor: ->
