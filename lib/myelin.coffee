@@ -2,7 +2,7 @@
 root = this
 previousMyelin = root.myelin
 
-if exports then myelin = exports
+if typeof exports isnt 'undefined' then myelin = exports
 else myelin = root.myelin = {}
 
 # require underscore, if we're on the server, and it's not already present.
@@ -300,6 +300,10 @@ class Parser
     parse: (sync) =>
         # Unroll arrays
         if _.isArray sync then _.map sync, @parse
+        # Instantiate axon classes
+        else if isAxonClass sync then @make false, new sync
+        # Send axons off without selectors
+        else if sync instanceof Axon then @make false, sync
         # Resolve functions with the view as their context
         else if _.isFunction sync then @parse sync.call @view
         # If they gave us just `string`, interpret it as an attribute
@@ -353,6 +357,10 @@ class Parser
 #       Interpreted as an attribute name. An appropriate selector will be found
 #       using myelin.selector, and an appropriate axon will be selected using
 #       axon.map and axon.default.
+#   * Axon class or instance
+#       The axon class will be instantiated (if necessary) and will not be given
+#       a selector nor attribute. It had better have one or the other, or it
+#       will be quite difficult for the axon to figure out what to watch.
 #   * Function
 #       Called with the view as it's context. The result is recursively parsed.
 #   * Object
