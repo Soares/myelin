@@ -321,9 +321,8 @@ class Parser
         # A falsy `option` means 'ignore this attribute'.
         # Allows resolved functions to say 'never mind'.
         if (not option) then return
-        # {attr: true} means 'look the selector up at event time'.
-        # To a synapse, this is the same as a missing selector
-        else if option is true then make()
+        # {attr: true} means 'use the default selector'
+        else if option is true then make selector: myelin.selector option
         # Given an array of selectors, make a synapse for each one.
         else if _.isArray option then @parsePair(attr, o) for o in option
         # Given an axon class, we instantiate it and use it to make a synapse.
