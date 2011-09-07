@@ -163,11 +163,10 @@ myelin.selector = (attribute) -> "[name=#{attribute}]"
 # Used intertally to see if something is an axon.
 # Guesses by duck-typing the prototype.
 isAxonClass = (fn) ->
-    console.log 'asking about', fn, fn::
-    return _.isFunction fn and
-           (fn::) and fn::constructor and
-           fn::get and fn::set and
-           fn::clean and fn::render
+    return (_.isFunction fn) and
+           (fn::) and (fn::constructor) and
+           (fn::get) and (fn::set) and
+           (fn::clean) and (fn::render)
 
 # An internal structure that does all the event binding and unbinding so that
 # developers can keep their axons simple and not see the man behind the curtain.
