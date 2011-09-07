@@ -266,7 +266,7 @@ class Synapse
         el = $ e.target
         value = @axon.clean @axon.get el
         data = {}
-        data[field] = value
+        data[@attr()] = value
         @model.set data
 
     # Coled when the model changes. Renders the data and sets it on the DOM.
