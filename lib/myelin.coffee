@@ -61,7 +61,7 @@ myelin.event = 'change'
 #       `attribute` is set via the constructor,
 #       `watchDom` is true,
 #       `watchModel` is true.
-class Axon
+class myelin.Axon
     constructor: (@attribute=null) ->
 
     # Get the value from the DOM element
