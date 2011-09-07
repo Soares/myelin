@@ -9,7 +9,7 @@ else myelin = root.myelin = {}
 _ = root._
 if not _ and require? then _ = require('underscore')._
 
-# require backbone, if we're on teh server, and it's not alraedy present.
+# require backbone, if we're on the server, and it's not alraedy present.
 Backbone = root.Backbone
 if not Backbone and require? then Backbone = require('backbone')
 
@@ -54,18 +54,18 @@ myelin.event = 'change'
 #                   This may be a function, in which case it must take one
 #                   parameter, which is the ($-wrapped) element being synced.
 #   @watchDom:      Whether or not the axon responds to DOM events.
-#                   DOM events will only be ignored if `watchDom` is
-#                   exactly `false`.
 #   @watchModel:    Whether or not the axon responds to model events.
-#                   Model events will only be ignored if `watchModel` is
-#                   exactly `false`.
+#
 #   By default
-#       `event` is undefined,
+#       `event` is "change",
 #       `attribute` is set via the constructor,
 #       `watchDom` is true
 #       `watchModel` is true.
 class myelin.Axon
     constructor: (@attribute=null) ->
+
+    # The event to sync on
+    event: "change"
 
     # Get the value from the DOM element
     get: (el) -> el.html()
@@ -123,6 +123,8 @@ class myelin.Radio extends myelin.Input
 # developers remember to never send unencrypted passwords across the line, and
 # is absolutely essential with tools like spine that auto-sync model data with
 # the server.
+# This Axon isn't used by default, as it will alter the length of the password
+# that displays on the input field.
 class myelin.Password extends myelin.Input
     clean: (value) ->
         bcrypt = require 'bcrypt'
@@ -140,7 +142,8 @@ myelin.map = [
     ['button', myelin.Button]
     ['input:checkbox', myelin.Checkbox]
     ['input:radio', myelin.Radio]
-    ['input:password', myelin.Password]
+    # Uncomment to enable the Password axon
+    # ['input:password', myelin.Password]
     ['select,input,textarea', myelin.Input]
 ]
 
@@ -163,7 +166,7 @@ myelin.selector = (attribute) -> "[name=#{attribute}]"
 # Guesses by duck-typing the prototype.
 isAxonClass: (fn) ->
     return _.isFunction fn and
-           fn::constructor and fn::event and
+           fn::constructor and
            fn::get and fn::set and
            fn::clean and fn::render
 
@@ -206,12 +209,12 @@ class Synapse
     # True iff. the synapse has both elements and a model to work with.
     ready: => return @scope and @model
 
-    # Lazily selects the elements being effected so as to include
-    # dynamically added elements
+    # Lazily selects the elements being affected so as to include dynamically
+    # added elements
     el: => if @selector then $(@selector, @scope) else $(@scope)
 
-    # Lazily determines the attribute to sync to so as to include
-    # data from dynamically added elements
+    # Lazily determines the attribute to sync to so as to include data from
+    # dynamically added elements
     attr: =>
         attr = @attribute or @axon.attribute or myelin.attribute
         if _.isFunction attr then attr @el() else attr
@@ -242,14 +245,14 @@ class Synapse
 
     # Sets all the DOM-side events
     bindDom: (bind='bind', delegate='delegate') =>
-        if @axon.watchDom is false then return
+        return unless @axon.watchDom
         event = @event or @axon.event or myelin.event
-        if @selector is '' then $(@scope)[bind] event, @domChange
-        else $(@scope)[delegate] @selector, event, @domChange
+        $(@scope)[bind](event, @domChange) unless @selector
+        $(@scope)[delegate](@selector, event, @domChange) if @selector
 
     # Sets all the model-side events
     bindModel: (bind='bind') =>
-        if @axon.watchModel is false then return
+        return unless @axon.watchModel
         @model[bind] "change:#{@attr()}", @modelChange
 
     # Unbinds DOM-side events
