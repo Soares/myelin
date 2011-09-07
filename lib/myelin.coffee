@@ -183,7 +183,6 @@ isAxonClass = (fn) ->
 #   @attribute:     The attribute to sync. Overrides @axon.attribute if given.
 class Synapse
     constructor: (options) ->
-        console.log 'making synapse with', options
         options = options or {}
         @scope = @model = null
         @selector = options.selector
