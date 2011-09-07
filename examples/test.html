@@ -9,18 +9,57 @@
         <script type="text/coffeescript" src="./myelin.coffee"></script>
     </head>
     <body>
-        <div id="example1">
-            <input name="name">
-            <span class="name"></span>
-        </div>
+
+        <form id="example1">
+            <input name="field">
+            <span></span>
+        </form>
         <script type="text/coffeescript">
-            class Model1 extends Backbone.Model
             class View1 extends myelin.View
                 el: '#example1'
-                sync: ['name', name: 'span.name']
-                initialize: => @model = new Model1
+                sync: ['field', field: 'span']
+                initialize: => @model = new Backbone.Model
             @view1 = new View1
-            console.log 'loaded example 1'
         </script>
+
+        <form id="example2">
+            <input name="field" type="checkbox">
+            <span></span>
+        </form>
+        <script type="text/coffeescript">
+            class Custom extends myelin.Axon
+                render: (value) => if value then "yes" else "no"
+            class View2 extends myelin.View
+                el: '#example2'
+                sync: ['field', field: new Custom 'span']
+                initialize: => @model = new Backbone.Model
+            @view2 = new View2
+        </script>
+
+        <form id="example3">
+            <input name="field" type="radio" value="one">
+            <input name="field" type="radio" value="two" checked>
+            <input name="field" type="radio" value="three">
+            <span></span>
+        </form>
+        <script type="text/coffeescript">
+            class Custom extends myelin.Radio
+                clean: (value) =>
+                    switch value
+                        when "one" then 1
+                        when "two" then 2
+                        when "three" then 3
+                render: (value) =>
+                    switch value
+                        when 1 then "one"
+                        when 2 then "two"
+                        when 3 then "three"
+            class View3 extends myelin.View
+                el: '#example3'
+                sync: {field: [Custom, 'span']}
+                initialize: => @model = new Backbone.Model field: 1
+            @view3 = new View3
+        </script>
+
     </body>
 </html>
