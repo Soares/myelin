@@ -183,7 +183,6 @@ isAxonClass = (fn) ->
 #   @attribute:     The attribute to sync. Overrides @axon.attribute if given.
 class Synapse
     constructor: (options) ->
-        console.log 'making synapse with', options
         options = options or {}
         @scope = @model = null
         @selector = options.selector
@@ -209,9 +208,14 @@ class Synapse
     # True iff. the synapse has both elements and a model to work with.
     ready: => return @scope and @model
 
+    # Lazily determine the selector so as to use @axon.selector if available
+    sel: => @selector or @axon.selector
+
     # Lazily selects the elements being affected so as to include dynamically
     # added elements
-    el: => if @selector then $(@selector, @scope) else $(@scope)
+    el: =>
+        selector = @sel()
+        if selector then $(selector, @scope) else $(@scope)
 
     # Lazily determines the attribute to sync to so as to include data from
     # dynamically added elements
@@ -241,15 +245,15 @@ class Synapse
     # view changes model or el; updates only happen naturally on events.
     push: =>
         return unless @ready()
-        console.log 'pushing with axon', @axon
         @axon.set @el(), @axon.render @model.get @attr()
 
     # Sets all the DOM-side events
     bindDom: (bind='bind', delegate='delegate') =>
         return unless @axon.watchDom
         event = @event or @axon.event or myelin.event
-        $(@scope)[bind](event, @domChange) unless @selector
-        $(@scope)[delegate](@selector, event, @domChange) if @selector
+        selector = @sel()
+        $(@scope)[bind](event, @domChange) unless selector
+        $(@scope)[delegate](selector, event, @domChange) if selector
 
     # Sets all the model-side events
     bindModel: (bind='bind') =>
@@ -271,7 +275,7 @@ class Synapse
         data[@attr()] = value
         @model.set data
 
-    # Coled when the model changes. Renders the data and sets it on the DOM.
+    # Called when the model changes. Renders the data and sets it on the DOM.
     modelChange: (model, val) =>
         return unless @scope
         @axon.set @el(), @axon.render val
@@ -323,9 +327,10 @@ class Parser
         # Given an array of selectors, make a synapse for each one.
         else if _.isArray option then @parsePair(attr, o) for o in option
         # Given an axon class, we instantiate it and use it to make a synapse.
-        else if isAxonClass option then make axon: new option
+        else if isAxonClass option
+            make axon: new option (myelin.selector attr)
         # Given an axon instanceo, we use it to make a synapse
-        else if option instanceof myelin.Axon then make option
+        else if option instanceof myelin.Axon then make axon: option
         # If `option` is a non-axon function, resolve it with the view as the
         # context and the selector as an argument.
         else if _.isFunction option
@@ -385,7 +390,6 @@ class Parser
 class myelin.View extends Backbone.View
     constructor: ->
         super
-        console.log 'parsing', @sync
         @synapses = (new Parser).parse(@sync).synapses
         @delegateLinks()
 
