@@ -62,7 +62,7 @@ myelin.event = 'change'
 #       `watchDom` is true,
 #       `watchModel` is true.
 class myelin.Axon
-    constructor: (@attribute=null) ->
+    constructor: (@selector=null) ->
 
     # Get the value from the DOM element
     get: (el) -> el.html()
@@ -183,6 +183,7 @@ isAxonClass = (fn) ->
 #   @attribute:     The attribute to sync. Overrides @axon.attribute if given.
 class Synapse
     constructor: (options) ->
+        console.log 'making synapse with', options
         options = options or {}
         @scope = @model = null
         @selector = options.selector
@@ -240,6 +241,7 @@ class Synapse
     # view changes model or el; updates only happen naturally on events.
     push: =>
         return unless @ready()
+        console.log 'pushing with axon', @axon
         @axon.set @el(), @axon.render @model.get @attr()
 
     # Sets all the DOM-side events
@@ -383,6 +385,7 @@ class Parser
 class myelin.View extends Backbone.View
     constructor: ->
         super
+        console.log 'parsing', @sync
         @synapses = (new Parser).parse(@sync).synapses
         @delegateLinks()
 
