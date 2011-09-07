@@ -12,8 +12,7 @@
         "browserify": "1.x"
     },
     "devDependencies": {
-        "vows": "0.5.x",
-        "zappa": "0.2.x"
+        "vows": "0.5.x"
     },
     "keywords": ["backbone", "synapse", "coffeescript", "relational", "forms",
          "automatic"],
