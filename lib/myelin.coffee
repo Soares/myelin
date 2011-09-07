@@ -162,7 +162,7 @@ myelin.selector = (attribute) -> "[name=#{attribute}]"
 
 # Used intertally to see if something is an axon.
 # Guesses by duck-typing the prototype.
-isAxonClass: (fn) ->
+isAxonClass = (fn) ->
     return _.isFunction fn and
            fn::constructor and
            fn::get and fn::set and
@@ -183,6 +183,7 @@ isAxonClass: (fn) ->
 #   @attribute:     The attribute to sync. Overrides @axon.attribute if given.
 class Synapse
     constructor: (options) ->
+        console.log 'making synapse with', options
         @scope = @model = null
         @selector = options.selector
         if @selector is 'this' then @selector = false
