@@ -336,9 +336,7 @@ class Parser
 
     # Creates a synapse from `selector` and `desc`. `desc` can be anything that
     # makes it through @valid.
-    make: (attribute, option) =>
-        # Use the options that the view gave us as parameters to each synapse.
-        options = _.extend (@interpret option), attribute: attribute, @options
+    make: (options) =>
         @synapses.push new Synapse options
         return this
 
@@ -389,8 +387,8 @@ class myelin.View extends Backbone.View
         @delegateLinks()
 
     delegateLinks: (options) =>
-        @model = options.model or @model
-        @el = options.el or @el
+        @model = options?.model or @model
+        @el = options?.el or @el
         for synapse in @synapses
             if @el then synapse.assignScope(@el)
             if @model then synapse.assignModel(@model)
