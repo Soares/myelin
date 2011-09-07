@@ -310,7 +310,7 @@ class Parser
         # and generate the selector using myelin.selector
         else if _.isString sync then @parsePair sync, (myelin.selector sync)
         # If they gave an object, parse each key-value pair
-        else if sync then @parsePair(key, value) for key, value of sync
+        else @parsePair(key, value) for key, value of sync
         return this
 
     # Parse a {attribute: selector or axon} pair into a Synapse.
