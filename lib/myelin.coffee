@@ -383,6 +383,7 @@ class Parser
 #       argument, then recursively re-parsed.
 class myelin.View extends Backbone.View
     constructor: ->
+        super
         @synapses = (new Parser).parse(@sync).synapses
         @delegateLinks()
 
