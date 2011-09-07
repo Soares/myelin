@@ -103,7 +103,7 @@ class myelin.Submit extends myelin.Input
 # An Input button for checkboxes. It `get`s a boolean value and `set`s the
 # checkbox's checked attribute.
 class myelin.Checkbox extends myelin.Input
-    get: (el) -> el.is 'checked'
+    get: (el) -> el.is ':checked'
     set: (el, value) ->
         if value then el.attr('checked', 'checked') else el.removeAttr 'checked'
 
