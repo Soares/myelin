@@ -184,6 +184,7 @@ isAxonClass = (fn) ->
 class Synapse
     constructor: (options) ->
         console.log 'making synapse with', options
+        options = options or {}
         @scope = @model = null
         @selector = options.selector
         if @selector is 'this' then @selector = false
