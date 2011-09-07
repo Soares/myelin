@@ -297,14 +297,14 @@ class Parser
         # Instantiate axon classes
         else if isAxonClass sync then @make axon: new sync
         # Send axons off without selectors
-        else if sync instanceof Axon then @make axon: sync
+        else if sync instanceof myelin.Axon then @make axon: sync
         # Resolve functions with the view as their context
         else if _.isFunction sync then @parse sync.call @view
         # If they gave us just `string`, interpret it as an attribute
         # and generate the selector using myelin.selector
-        else if _.isString sync then @parsePair (myelin.selector sync), sync
+        else if _.isString sync then @parsePair sync, (myelin.selector sync)
         # If they gave an object, parse each key-value pair
-        else @parsePair(key, value) for key, value of sync
+        else if sync then @parsePair(key, value) for key, value of sync
         return this
 
     # Parse a {attribute: selector or axon} pair into a Synapse.
@@ -323,7 +323,7 @@ class Parser
         # Given an axon class, we instantiate it and use it to make a synapse.
         else if isAxonClass option then make axon: new option
         # Given an axon instanceo, we use it to make a synapse
-        else if option instanceof Axon then make option
+        else if option instanceof myelin.Axon then make option
         # If `option` is a non-axon function, resolve it with the view as the
         # context and the selector as an argument.
         else if _.isFunction option
