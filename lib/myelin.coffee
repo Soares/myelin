@@ -57,15 +57,12 @@ myelin.event = 'change'
 #   @watchModel:    Whether or not the axon responds to model events.
 #
 #   By default
-#       `event` is "change",
+#       `event` is undefined,
 #       `attribute` is set via the constructor,
-#       `watchDom` is true
+#       `watchDom` is true,
 #       `watchModel` is true.
 class myelin.Axon
     constructor: (@attribute=null) ->
-
-    # The event to sync on
-    event: "change"
 
     # Get the value from the DOM element
     get: (el) -> el.html()
@@ -91,6 +88,7 @@ class myelin.Link extends myelin.Axon
 
 # An axon that gets and sets data using jQuery's val()
 class myelin.Input extends myelin.Axon
+    event: 'change'
     get: (el) -> el.val()
     set: (el, value) -> el.val value
 
