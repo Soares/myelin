@@ -61,7 +61,7 @@ myelin.event = 'change'
 #       `attribute` is set via the constructor,
 #       `watchDom` is true,
 #       `watchModel` is true.
-class myelin.Axon
+class Axon
     constructor: (@attribute=null) ->
 
     # Get the value from the DOM element
@@ -163,8 +163,9 @@ myelin.selector = (attribute) -> "[name=#{attribute}]"
 # Used intertally to see if something is an axon.
 # Guesses by duck-typing the prototype.
 isAxonClass = (fn) ->
+    console.log 'asking about', fn, fn::
     return _.isFunction fn and
-           fn::constructor and
+           (fn::) and fn::constructor and
            fn::get and fn::set and
            fn::clean and fn::render
 
