@@ -17,7 +17,7 @@
         <script type="text/coffeescript">
             class View1 extends myelin.View
                 el: '#example1'
-                sync: ['field', field: 'span']
+                sync: {field: [true, 'span']}
                 initialize: => @model = new Backbone.Model
             @view1 = new View1
         </script>
@@ -31,7 +31,7 @@
                 render: (value) => if value then "yes" else "no"
             class View2 extends myelin.View
                 el: '#example2'
-                sync: ['field', field: new Custom 'span']
+                sync: {field: [true, new Custom 'span']}
                 initialize: => @model = new Backbone.Model
             @view2 = new View2
         </script>
