@@ -203,8 +203,8 @@ class Synapse
     chooseAxon: =>
         el = @el()
         for [selector, axon] in myelin.map
-            if el.is(selector) then return axon
-        return myelin.default
+            if el.is(selector) then return new axon
+        return new myelin.default
 
     # True iff. the synapse has both elements and a model to work with.
     ready: => return @scope and @model
