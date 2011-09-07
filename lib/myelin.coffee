@@ -316,7 +316,7 @@ class Parser
         if (not option) then return
         # {attr: true} means 'look the selector up at event time'.
         # To a synapse, this is the same as a missing selector
-        else if (option is true then make()
+        else if option is true then make()
         # Given an array of selectors, make a synapse for each one.
         else if _.isArray option then @parsePair(attr, o) for o in option
         # Given an axon class, we instantiate it and use it to make a synapse.
