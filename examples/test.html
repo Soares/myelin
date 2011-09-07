@@ -1,19 +1,26 @@
 <!doctype html>
 <html>
     <head>
+        <title>Myelin examples</title>
+        <script type="text/javascript" src="./jquery.js"></script>
+        <script type="text/javascript" src="./underscore.js"></script>
+        <script type="text/javascript" src="./backbone.js"></script>
+        <script type="text/javascript" src="./coffee-script.js"></script>
+        <script type="text/coffeescript" src="./myelin.coffee"></script>
     </head>
     <body>
-        wait for it.
-        <script type="text/javascript" src="http://documentcloud.github.com/underscore/underscore.js">
-        </script>
-        <script type="text/javascript" src="http://documentcloud.github.com/backbone/backbone.js">
-        </script>
-        <script type="text/javascript" src="./coffee-script.js">
-        </script>
-        <script type="text/coffeescript" src="./myelin.coffee">
-        </script>
+        <div id="example1">
+            <input name="name">
+            <span class="name"></span>
+        </div>
         <script type="text/coffeescript">
-            console.log "in"
+            class Model1 extends Backbone.Model
+            class View1 extends myelin.View
+                el: '#example1'
+                sync: ['name', name: 'span.name']
+                initialize: => @model = new Model1
+            @view1 = new View1
+            console.log 'loaded example 1'
         </script>
     </body>
 </html>
