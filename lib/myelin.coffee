@@ -102,10 +102,14 @@ class myelin.Input extends myelin.Axon
     set: (el, value) -> el.val value
 
 # An Input axon that responds to click events.
+# By default it does not watch the model.
 class myelin.Button extends myelin.Input
     event: 'click'
-    get: (el) -> if el.is('button') then el.html() else el.val()
-    set: (el, value) -> (if el.is('button') then el.html else el.val)(value)
+    watchModel: false
+    get: (el) ->
+        if el.is('button') then el.html() else el.val()
+    set: (el, value) ->
+        if el.is('button') then el.html(value) else el.val(value)
 
 # An Input axon that responds to submit events.
 class myelin.Submit extends myelin.Input
