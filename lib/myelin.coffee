@@ -324,7 +324,7 @@ class Parser
         # Allows resolved functions to say 'never mind'.
         if (not option) then return
         # {attr: true} means 'use the default selector'
-        else if option is true then make selector: myelin.selector option
+        else if option is true then make selector: myelin.selector attr
         # Given an array of selectors, make a synapse for each one.
         else if _.isArray option then @parsePair(attr, o) for o in option
         # Given an axon class, we instantiate it and use it to make a synapse.
