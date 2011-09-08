@@ -252,7 +252,7 @@ class Synapse
     # Sets all the DOM-side events
     bindDom: (bind='bind', delegate='delegate') =>
         return unless @axon.watchDom
-        event = @event or @axon.event or myelin.event
+        event = @event or @axon?.event or myelin.event
         selector = @sel()
         $(@scope)[bind](event, @domChange) unless selector
         $(@scope)[delegate](selector, event, @domChange) if selector
