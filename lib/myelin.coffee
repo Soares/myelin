@@ -34,9 +34,6 @@ myelin.events = [
     'submit', 'keydown', 'keypress', 'keyup', 'error'
 ]
 
-# The default event to watch for on DOM elements
-myelin.event = 'change'
-
 # Axons are the 'controllers' that handle linking backbone models to views.
 # Each axon must know how to get and set data from the DOM and how to clean
 # data for the model and render data from the model.
@@ -50,23 +47,21 @@ myelin.event = 'change'
 #   @event:         the event that the sync will be fired on.
 #                   By default, this will be 'change'.
 #                   The default can be changed by overriding myelin.event
+#                   If event is falsy, domEvents will not be watched for
 #   @attribute:     the name of the attribute to set on the model.
 #                   This may be a function, in which case it must take one
 #                   parameter, which is the ($-wrapped) element being synced.
-#   @watchDom:      Whether or not the axon responds to DOM events.
 #   @watchModel:    Whether or not the axon responds to model events.
 #
 #   By default
-#       `event` is undefined,
+#       `event` is false,
 #       `attribute` is set via the constructor,
-#       `watchDom` is true,
 #       `watchModel` is true.
 class myelin.Axon
     constructor: (options={}) ->
         if _.isString options then @selector = options
         @selector = options.selector if options.selector
         @watchModel = options.watchModel if options.watchModel
-        @watchDom = options.watchDom if options.watchDom
 
     # Get the value from the DOM element
     get: (el) -> el.html()
@@ -85,8 +80,8 @@ class myelin.Axon
     # checkboxes require special handling.
     undefine: (el) ->
 
-    # Whether or not to watch DOM events
-    watchDom: true
+    # Don't respond to DOM events, just update from the model
+    event: false
 
     # Whether or not to watch Model events
     watchModel: true
@@ -267,7 +262,7 @@ class Synapse
 
     # Sets all the DOM-side events
     bindDom: (bind='bind', delegate='delegate') =>
-        return unless @axon.watchDom
+        return unless @axon.event
         event = @event or @axon?.event or myelin.event
         selector = @sel()
         $(@scope)[bind](event, @domChange) unless selector
