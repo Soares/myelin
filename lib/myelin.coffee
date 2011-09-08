@@ -95,6 +95,8 @@ class myelin.Input extends myelin.Axon
 # An Input axon that responds to click events.
 class myelin.Button extends myelin.Input
     event: 'click'
+    get: (el) -> if el.is('button') then el.html() else el.val()
+    set: (el, value) -> (if el.is('button') then el.html else el.val)(value)
 
 # An Input axon that responds to submit events.
 class myelin.Submit extends myelin.Input
@@ -137,7 +139,7 @@ class myelin.Password extends myelin.Input
 myelin.map = [
     ['a', myelin.Link]
     ['input:submit,button:submit', myelin.Submit]
-    ['button', myelin.Button]
+    ['button,input:button', myelin.Button]
     ['input:checkbox', myelin.Checkbox]
     ['input:radio', myelin.Radio]
     # Uncomment to enable the Password axon
