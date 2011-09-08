@@ -10,21 +10,37 @@
     </head>
     <body>
 
-        <form id="example1">
-            <input name="text">
-            <span class="text"></span>
-            <input name="checkbox" type="checkbox">
-            <span class="checkbox"></span>
-            <input name="radio" type="radio" value="one">
-            <input name="radio" type="radio" value="two" checked>
-            <input name="radio" type="radio" value="three">
-            <span class="radio"></span>
-            <button name="button" type="button">I am a button</button>
-            <span class="button"></span>
+        <form id="example">
+            <div>
+                <input name="text">
+                <span class="text"></span>
+            </div>
+            <div>
+                <input name="checkbox" type="checkbox">
+                <span class="checkbox"></span>
+            </div>
+            <div>
+                <input name="radio" type="radio" value="one">
+                <input name="radio" type="radio" value="two" checked>
+            </div>
+            <div>
+                <input name="radio" type="radio" value="three">
+                <span class="radio"></span>
+            </div>
+            <div>
+                <button name="button" type="button">I am a button</button>
+                <input name="button" value="CLICKY" type="button">
+                <span class="button"></span>
+            </div>
+            <div>
+                <button name="fake" type="button">I'm fake.</button>
+            </div>
         </form>
         <script type="text/coffeescript">
             class YesNo extends myelin.Axon
                 render: (value) => if value then "yes" else "no"
+                undefine: (el) => @set el, @render false
+
             class Radio extends myelin.Radio
                 clean: (value) =>
                     switch value
@@ -36,16 +52,28 @@
                         when 1 then "one"
                         when 2 then "two"
                         when 3 then "three"
-            class View1 extends myelin.View
-                el: '#example1'
+
+            class OneWayButton extends myelin.Button
+                watchModel: false
+
+            model = new Backbone.Model
+                text: "Hello there!"
+                radio: 1
+
+            class View extends myelin.View
+                el: '#example'
                 sync: {
                     text: [true, '.text']
                     radio: [Radio, '.radio']
                     checkbox: [true, new YesNo '.checkbox']
-                    button: [true, '.button']
+                    button: [OneWayButton, '.button']
+                    fake: [true, '.nonexistant']
                 }
-                initialize: => @model = new Backbone.Model radio: 1
-            @view1 = new View1
+                initialize: @model = new Backbone.Model
+                    text: "Welcome!"
+                    radio: 1
+
+            @view = new View
         </script>
 
     </body>
