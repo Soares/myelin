@@ -80,6 +80,11 @@ class myelin.Axon
     # Set the value on the DOM element
     set: (el, value) -> el.html value
 
+    # Handle the case where value is supposed to be undefined.
+    # Most elements want to ignore such a case, but binary elements like
+    # checkboxes require special handling.
+    undefine: (el) ->
+
     # Whether or not to watch DOM events
     watchDom: true
 
@@ -112,6 +117,7 @@ class myelin.Checkbox extends myelin.Input
     get: (el) -> el.is ':checked'
     set: (el, value) ->
         if value then el.attr('checked', 'checked') else el.removeAttr 'checked'
+    undefine: (el) => @set el, false
 
 # An Input axon for radio fields. For this axon, `el` will be a collection of
 # elements in the radio set. `get` will return the value of the checked field,
@@ -251,7 +257,9 @@ class Synapse
     # view changes model or el; updates only happen naturally on events.
     push: =>
         return unless @ready()
-        @axon.set @el(), @axon.render @model.get @attr()
+        val = @model.get @attr()
+        if val is undefined then @axon.undefine @el()
+        else @axon.set @el(), @axon.render val
 
     # Sets all the DOM-side events
     bindDom: (bind='bind', delegate='delegate') =>
