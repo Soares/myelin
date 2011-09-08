@@ -11,39 +11,21 @@
     <body>
 
         <form id="example1">
-            <input name="field">
-            <span></span>
+            <input name="text">
+            <span class="text"></span>
+            <input name="checkbox" type="checkbox">
+            <span class="checkbox"></span>
+            <input name="radio" type="radio" value="one">
+            <input name="radio" type="radio" value="two" checked>
+            <input name="radio" type="radio" value="three">
+            <span class="radio"></span>
+            <button name="button" type="button">I am a button</button>
+            <span class="button"></span>
         </form>
         <script type="text/coffeescript">
-            class View1 extends myelin.View
-                el: '#example1'
-                sync: {field: [true, 'span']}
-                initialize: => @model = new Backbone.Model
-            @view1 = new View1
-        </script>
-
-        <form id="example2">
-            <input name="field" type="checkbox">
-            <span></span>
-        </form>
-        <script type="text/coffeescript">
-            class Custom extends myelin.Axon
+            class YesNo extends myelin.Axon
                 render: (value) => if value then "yes" else "no"
-            class View2 extends myelin.View
-                el: '#example2'
-                sync: {field: [true, new Custom 'span']}
-                initialize: => @model = new Backbone.Model
-            @view2 = new View2
-        </script>
-
-        <form id="example3">
-            <input name="field" type="radio" value="one">
-            <input name="field" type="radio" value="two" checked>
-            <input name="field" type="radio" value="three">
-            <span></span>
-        </form>
-        <script type="text/coffeescript">
-            class Custom extends myelin.Radio
+            class Radio extends myelin.Radio
                 clean: (value) =>
                     switch value
                         when "one" then 1
@@ -54,11 +36,16 @@
                         when 1 then "one"
                         when 2 then "two"
                         when 3 then "three"
-            class View3 extends myelin.View
-                el: '#example3'
-                sync: {field: [Custom, 'span']}
-                initialize: => @model = new Backbone.Model field: 1
-            @view3 = new View3
+            class View1 extends myelin.View
+                el: '#example1'
+                sync: {
+                    text: [true, '.text']
+                    radio: [Radio, '.radio']
+                    checkbox: [true, new YesNo '.checkbox']
+                    button: [true, '.button']
+                }
+                initialize: => @model = new Backbone.Model radio: 1
+            @view1 = new View1
         </script>
 
     </body>
