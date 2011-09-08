@@ -62,7 +62,11 @@ myelin.event = 'change'
 #       `watchDom` is true,
 #       `watchModel` is true.
 class myelin.Axon
-    constructor: (@selector=null) ->
+    constructor: (options={}) ->
+        if _.isString options then @selector = options
+        @selector = options.selector if options.selector
+        @watchModel = options.watchModel if options.watchModel
+        @watchDom = options.watchDom if options.watchDom
 
     # Get the value from the DOM element
     get: (el) -> el.html()
