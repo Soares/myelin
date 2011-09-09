@@ -4,6 +4,7 @@ root = this
 # Save a reference to the current myelin object
 previousMyelin = root.myelin
 
+# Create the myelin object in the global namespace
 if typeof exports isnt 'undefined' then myelin = exports
 else myelin = root.myelin = {}
 
@@ -26,9 +27,8 @@ myelin.noConflict = ->
 
 # A list of events that, placed at the beginning of selectors, will be
 # recognized as events and not part of the selector.
-# myelin whitelists events instead of blacklisting tags to that you can use
-# selectors that include non-standard tags from other non-html formats and
-# documents such as SVG or custom XML.
+# myelin whitelists events instead of blacklisting tags to that you can include
+# weird tags from non-html documents such as SVG or custom XML.
 myelin.events = [
     'blur', 'focus', 'focusin', 'focusout', 'load', 'resize', 'scroll'
     'unload', 'click', 'dblclick', 'mousedown', 'mouseup', 'mousemove'
@@ -39,10 +39,10 @@ myelin.events = [
 # A class that handles all interaction between the DOM and the Model.
 # It performs the following four basic actions:
 #   get: given an element, returns the value to be synced for that element
-#   clean: given an element value, clean it for setting on the model
-#   render: given a model valeu, render it for display on the element
-#   set: given an element and a value, set the value on the element
-# It also has three attributes that control behavior:
+#   clean: given the result of `get`, cleans it for setting on the model
+#   render: given a model value, render it for display on the element
+#   set: given an element and the result of `render`, set it on the element
+# Handlers also have three attributes that control behavior:
 #   domEvent: the event to listen for on the element (click, change, etc.)
 #       can also be a function that takes the element and returns the event
 #       if falsy, the model will not listen to DOM events
@@ -53,7 +53,7 @@ myelin.events = [
 # For convenience, the constructor can take an 'event' kwarg in an options dict,
 # which, if present, overrides domEvent.
 class Handler
-    constructor: (options) -> if options?.event then @domEvent = options.event
+    constructor: (options) -> if options?.event? then @domEvent = options.event
 
     # Get the value from the DOM element
     get: (el) -> el.html()
@@ -64,7 +64,7 @@ class Handler
     # Prepare the model's value for display
     render: (value) -> value
 
-    # Set the value on the DOM element
+    # Set the model's value on the DOM element
     set: (el, value) -> el.html value
 
     # The event to listen for on the DOM element, or falsy if the model does not
@@ -89,6 +89,10 @@ class Input extends Handler
     set: (el, value) -> el.val value
 
 # An Input handler that responds to click events and ignores the model
+# The common use pattern for buttons is to have a number of buttons with
+# different values, and clicking each button sets that button's value on the
+# model. As such, buttons must ignore changes on the model, or all of the
+# buttons will sync to the model the moment one of them is clicked.
 class Button extends Input
     domEvent: 'click'
     modelEvent: false
@@ -97,20 +101,19 @@ class Button extends Input
     set: (el, value) ->
         if el.is('button') then el.html(value) else el.val(value)
 
-# An Input handler that responds to submit events, ignores the model, and
-# prevents the default event
-class Submit extends Input
-    domEvent: 'click'
-    modelEvent: false
+# An Input handler for submit buttons. It works just like Button, but also
+# prevents the default DOM event, which would submit the form.
+class Submit extends Button
     preventDefault: true
 
 # An Input button for checkboxes. It `get`s a boolean value and `set`s the
-# checkbox's checked attribute.
+# checkbox's "checked" attribute.
 class Checkbox extends Input
     get: (el) -> el.is ':checked'
     set: (el, value) ->
         if value then el.attr('checked', 'checked') else el.removeAttr 'checked'
-    render: (value) -> if value then true else false
+    clean: Boolean
+    render: Boolean
 
 # An Input handler for radio fields. For this axon, `el` will be a collection of
 # elements in the radio set. `get` will return the value of the checked field,
@@ -145,6 +148,37 @@ isHandlerClass = (fn) ->
            (fn::clean) and (fn::render)
 
 
+# The Axon class preforms the binding between the element and the model.
+# Axons take four parameters in the options object in their constructor:
+#   selector: the selector for the element being bound
+#   attribute: the attribute on the model to be synced
+#   handler: the handler class to handle the binding
+#   event: the DOM event to listen for. Overrides handler.domEvent if given.
+#
+# All arguments are optional, but each Axon _must_ be given either
+# `selector` or `attribute`, because if either is missing it is inferred from
+# the other.
+#
+# If selector is missing, it is inferred from attribute using Axon.selector.
+# By default, this resolves [name=#{attribute}]. Override Axon.selector to
+# change this behavior.
+#
+# If the attribute is missing, it is inferred from the selector at event-time
+# by looking at the elements matched by `selector`. By default, this resolves to
+# $(element).attr('name'). Override Axon.attribute to change this behavior.
+#
+# If the handler is missing, it is inferred from the elements matched by the
+# selector at event-time. By default, myelin.map is used to determine which
+# elements match which handlers. You can either modify myelin.map or override
+# Axon.handler to change this behavior.
+#
+# Event is used as a convenience to override handler.domEvent. If not given then
+# handler.domEvent simply will not be overridden.
+#
+# Note that both handler and attribute are resolved at event-time if they are
+# missing. Therefore, if you are binding to an input that changes its type from
+# checkbox to email in between events, the correct handler will be chosen each
+# time.
 class Axon
     constructor: (options={}) ->
         # if attribute is not given, the attribute function will be used to
@@ -161,13 +195,13 @@ class Axon
         # If a handler and event are given, override the handler's event
         if options.handler instanceof Handler
             @handler = options.handler
-            if options.event then @handler.event = options.event
-        else if options.handler and options.event
+            if options.event? then @handler.event = options.event
+        else if options.handler and options.event?
             @handler = new options.handler event: options.event
         else if options.handler
             @handler = new options.handler
         # If only an event is given, save it for later instantiation
-        else if options.event then @event = options.event
+        else if options.event? then @event = options.event
 
         # These are the links that an axon needs before it can be used.
         @scope = @model = null
@@ -191,7 +225,7 @@ class Axon
     handler: (el) =>
         for [selector, handler] in myelin.map
             if el.is(selector) then return new handler {@event}
-        return new Handler {@event}
+        return new myelin.handler {@event}
 
     # True iff. the axon has both elements and a model to work with.
     ready: => return @scope and @model
@@ -298,7 +332,7 @@ class Parser
         # Resolve functions with the view as their context
         else if _.isFunction sync then @parse sync.call @view
         # If they gave us just `string`, interpret it as a selector
-        else if _.isString sync then @axons.push new Axon @normalize sync
+        else if _.isString sync then @axons.push new myelin.axon @normalize sync
         # If they gave an object, parse each key-value pair
         else @parsePair(key, value) for key, value of sync
         return this
@@ -308,7 +342,7 @@ class Parser
         # Helper to make a new Axon with attribute: attr
         make = (options={}) =>
             options.attribute or= attr
-            @axons.push new Axon options
+            @axons.push new myelin.axon options
         # A falsy `option` means 'ignore this attribute'.
         # Allows resolved functions to say 'never mind'.
         if (not option) then return
@@ -375,12 +409,13 @@ class Parser
 #       Will be resolved with the view as the context and the attribute as an
 #       argument, then recursively re-parsed.
 class View extends Backbone.View
-    constructor: ->
+    constructor: (options) ->
+        if options.model then @model = options.model
         super
         @axons = (new Parser).parse(@sync).axons
-        @delegateLinks()
+        @link()
 
-    delegateLinks: (options) =>
+    link: (options) =>
         @model = options?.model or @model
         @el = options?.el or @el
         for axon in @axons
@@ -407,7 +442,16 @@ myelin.map = [
     ['select,input,textarea', Input]
 ]
 
+# Expose the Axon class
 myelin.Axon = Axon
 
+# The default axon to be used for all bindings. If you subclass Axon and
+# want the default behavior to be changed, override myelin.axon as well.
+myelin.axon = Axon
+
+# The default handler to be used when no suitable handler can be found.
+myelin.handler = Handler
+
+# Expose the handlers
 handlers = {Handler, Link, Input, Button, Submit, Checkbox, Radio, Password}
 _.extend myelin, handlers

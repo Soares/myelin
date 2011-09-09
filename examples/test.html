@@ -10,6 +10,8 @@
     </head>
     <body>
 
+        <!-- test type-switching -->
+        <!-- test model-switching -->
         <form id="example">
             <div>
                 <input name="text">
@@ -69,11 +71,10 @@
                     fake: [true, '.nonexistant']
                     immediate: ['keyup', '.immediate']
                 }
-                initialize: => @model = new Backbone.Model
-                    text: "Welcome!"
-                    radio: 1
 
-            @view = new View
+            @view = new View model; new Backbone.Model
+                text: "Welcome!"
+                radio: 1
         </script>
 
         <input id="example2" name="ex2">
