@@ -91,6 +91,7 @@ class Input extends Handler
 # An Input handler that responds to click events and ignores the model
 class Button extends Input
     domEvent: 'click'
+    modelEvent: false
     get: (el) ->
         if el.is('button') then el.html() else el.val()
     set: (el, value) ->
@@ -99,7 +100,8 @@ class Button extends Input
 # An Input handler that responds to submit events, ignores the model, and
 # prevents the default event
 class Submit extends Input
-    domEvent: 'submit'
+    domEvent: 'click'
+    modelEvent: false
     preventDefault: true
 
 # An Input button for checkboxes. It `get`s a boolean value and `set`s the
@@ -152,9 +154,9 @@ class Axon
         # If selector is not given, then the attribute _must_ be given, and will
         # be used immediately with the Axon.selector function to determine the
         # selector. `selector` will never be a function on an instantiated Axon.
-        if options.selector is 'this' then @selector = false
-        else if options.selector? then @selector = options.selector
+        if options.selector then @selector = options.selector
         else @selector = @selector @attribute
+        if @selector is 'this' then @selector = false
 
         # If a handler and event are given, override the handler's event
         if options.handler instanceof Handler
@@ -221,7 +223,7 @@ class Axon
     # Update the document with the model's current data. Required any time a
     # view changes model or el; updates only happen naturally on events.
     push: =>
-        return unless @ready()
+        return unless @ready() and @modelEvent()
         value = @model.get @lazy('attribute')
         handler = @lazy('handler')
         handler.set @el(), handler.render value

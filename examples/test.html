@@ -10,11 +10,6 @@
     </head>
     <body>
 
-        <!-- test custom event stuff -->
-        <!-- test no selector stuff -->
-        <!-- test selector only stuff -->
-        <!-- test prevent default -->
-        <!-- See if the checkbox yes/no works without undefine -->
         <form id="example">
             <div>
                 <input name="text">
@@ -28,14 +23,16 @@
                 <input name="radio" type="radio" value="one">
                 <input name="radio" type="radio" value="two" checked>
                 <input name="radio" type="radio" value="three">
-            </div>
-            <div>
                 <span class="radio"></span>
             </div>
             <div>
                 <button name="button" type="button">I am a button</button>
                 <input name="button" value="CLICKY" type="button">
                 <span class="button"></span>
+            </div>
+            <div>
+                <input name="submit" type="submit" value="normally I submit things">
+                <span class="submit"></span>
             </div>
             <div>
                 <button name="fake" type="button">I'm fake.</button>
@@ -61,16 +58,14 @@
             class YesNo extends myelin.Handler
                 render: (value) => if value then "yes" else "no"
 
-            class OneWayButton extends myelin.Button
-                modelEvent: false
-
             class View extends myelin.View
                 el: '#example'
                 sync: {
                     text: [true, '.text']
                     radio: [Radio, '.radio']
                     checkbox: [true, {handler: YesNo, selector: '.checkbox'}]
-                    button: [OneWayButton, '.button']
+                    button: [true, '.button']
+                    submit: [true, '.submit']
                     fake: [true, '.nonexistant']
                     immediate: ['keyup', '.immediate']
                 }
