@@ -1,5 +1,7 @@
 # Save a reference to the global object
 root = this
+
+# Save a reference to the current myelin object
 previousMyelin = root.myelin
 
 if typeof exports isnt 'undefined' then myelin = exports
@@ -17,7 +19,7 @@ if not Backbone and require? then Backbone = require('backbone')
 $ = root.jQuery or root.Zepto
 
 # runs myelin in __noConflict__ mode, returning the `myelin` variable
-# to its previous owner. Returns a reference to this myelin object.
+# to its previous owner. Returns a reference to this `myelin` object.
 myelin.noConflict = ->
     root.myelin = previousMyelin
     return this
@@ -34,34 +36,24 @@ myelin.events = [
     'submit', 'keydown', 'keypress', 'keyup', 'error'
 ]
 
-# Axons are the 'controllers' that handle linking backbone models to views.
-# Each axon must know how to get and set data from the DOM and how to clean
-# data for the model and render data from the model.
-# The default axon gets data from and sets data to an element's inner html,
-# using jQuery's html() function.
-#
-# Optionally, an axon can have a few other parameters that affect how the
-# syncing is done.
-#
-# ## Axon Options
-#   @event:         the event that the sync will be fired on.
-#                   By default, this will be 'change'.
-#                   The default can be changed by overriding myelin.event
-#                   If event is falsy, domEvents will not be watched for
-#   @attribute:     the name of the attribute to set on the model.
-#                   This may be a function, in which case it must take one
-#                   parameter, which is the ($-wrapped) element being synced.
-#   @watchModel:    Whether or not the axon responds to model events.
-#
-#   By default
-#       `event` is false,
-#       `attribute` is set via the constructor,
-#       `watchModel` is true.
-class myelin.Axon
-    constructor: (options={}) ->
-        if _.isString options then @selector = options
-        @selector = options.selector if options.selector
-        @watchModel = options.watchModel if options.watchModel
+# A class that handles all interaction between the DOM and the Model.
+# It performs the following four basic actions:
+#   get: given an element, returns the value to be synced for that element
+#   clean: given an element value, clean it for setting on the model
+#   render: given a model valeu, render it for display on the element
+#   set: given an element and a value, set the value on the element
+# It also has three attributes that control behavior:
+#   domEvent: the event to listen for on the element (click, change, etc.)
+#       can also be a function that takes the element and returns the event
+#       if falsy, the model will not listen to DOM events
+#   modelEvent: the event to listen for on the model (change:attribute, etc.)
+#       can also be a function that takes the attribute and returns the event
+#       if falsy, the element will not change for model events
+#   preventDefault: if true, prevents the default DOM event from occuring
+# For convenience, the constructor can take an 'event' kwarg in an options dict,
+# which, if present, overrides domEvent.
+class Handler
+    constructor: (options) -> if options?.event then @domEvent = options.event
 
     # Get the value from the DOM element
     get: (el) -> el.html()
@@ -75,164 +67,139 @@ class myelin.Axon
     # Set the value on the DOM element
     set: (el, value) -> el.html value
 
-    # Handle the case where value is supposed to be undefined.
-    # Most elements want to ignore such a case, but binary elements like
-    # checkboxes require special handling.
-    undefine: (el) ->
+    # The event to listen for on the DOM element, or falsy if the model does not
+    # listen to the DOM
+    domEvent: false
 
-    # Don't respond to DOM events, just update from the model
-    event: false
+    # The event to listen for on the model, or falsy if the DOM does not listen
+    # to the model
+    modelEvent: (attribute) -> "change:#{attribute}"
 
-    # Whether or not to watch Model events
-    watchModel: true
+    # Whether or not the default DOM event should be stifled
+    preventDefault: false
 
-# An axon that responds to click events
-class myelin.Link extends myelin.Axon
-    event: 'click'
+# A handler specifically meant for html anchors
+class Link extends Handler
+    domEvent: 'click'
 
-# An axon that gets and sets data using jQuery's val()
-class myelin.Input extends myelin.Axon
-    event: 'change'
+# A handler that gets and sets using jQuery .val()
+class Input extends Handler
+    domEvent: 'change'
     get: (el) -> el.val()
     set: (el, value) -> el.val value
 
-# An Input axon that responds to click events.
-# By default it does not watch the model.
-class myelin.Button extends myelin.Input
-    event: 'click'
-    watchModel: false
+# An Input handler that responds to click events and ignores the model
+class Button extends Input
+    domEvent: 'click'
     get: (el) ->
         if el.is('button') then el.html() else el.val()
     set: (el, value) ->
         if el.is('button') then el.html(value) else el.val(value)
 
-# An Input axon that responds to submit events.
-class myelin.Submit extends myelin.Input
-    event: 'submit'
+# An Input handler that responds to submit events, ignores the model, and
+# prevents the default event
+class Submit extends Input
+    domEvent: 'submit'
+    preventDefault: true
 
 # An Input button for checkboxes. It `get`s a boolean value and `set`s the
 # checkbox's checked attribute.
-class myelin.Checkbox extends myelin.Input
+class Checkbox extends Input
     get: (el) -> el.is ':checked'
     set: (el, value) ->
         if value then el.attr('checked', 'checked') else el.removeAttr 'checked'
-    undefine: (el) => @set el, false
+    render: (value) -> if value then true else false
 
-# An Input axon for radio fields. For this axon, `el` will be a collection of
+# An Input handler for radio fields. For this axon, `el` will be a collection of
 # elements in the radio set. `get` will return the value of the checked field,
 # and `set` will cause only the field with the matching value to be checked.
-class myelin.Radio extends myelin.Input
+class Radio extends Input
     get: (el) -> el.filter(':checked').val()
     set: (el, value) ->
         el.removeAttr 'checked'
         el.filter("[value=#{value}]").attr 'checked', 'checked'
 
-# An Input axon for password fields. The user-entered password will never get
+# An Input handler for password fields. The user-entered password will never get
 # sent to the model, a bcrypt-encrypted hash will be sent instead. This helps
 # developers remember to never send unencrypted passwords across the line, and
 # is absolutely essential with tools like spine that auto-sync model data with
 # the server.
-# This Axon isn't used by default, as it will alter the length of the password
-# that displays on the input field.
-class myelin.Password extends myelin.Input
+# This handler isn't used by default, as it will alter the length of the
+# password that displays on the input field. This can be unexpected, especially
+# when there is a 'password confirmation' field.
+class Password extends Input
     clean: (value) ->
         bcrypt = require 'bcrypt'
         salt = bcrypt.gen_salt_sync
         bcrypt.encrypt_sync value, salt
 
-# A list used to intelligently match axons to elements.
-# Each element in myelin.map should be a [selector, axon] two-tuple.
-# If an element matches `selector` (using .is()) then `axon` will be used for
-# that element.  Order matters; the first match is used.
-# Override myelin.map to change the default axon matching.
-myelin.map = [
-    ['a', myelin.Link]
-    ['input:submit,button:submit', myelin.Submit]
-    ['button,input:button', myelin.Button]
-    ['input:checkbox', myelin.Checkbox]
-    ['input:radio', myelin.Radio]
-    # Uncomment to enable the Password axon
-    # ['input:password', myelin.Password]
-    ['select,input,textarea', myelin.Input]
-]
 
-# The default axon to use if an appropriate axon is not found in myelin.map
-myelin.default = myelin.Axon
-
-# When an axon doesn't know the model attribute to sync to, it uses
-# myelin.attribute to look it up. myelin.attribute will be called at event-time
-# with the element being synced as a parameter.
-# The parameter will be $-wrapped.
-# By default, el.attr('name') will be used.
-myelin.attribute = (el) -> el.attr 'name'
-
-# When a sync is defined using only an attribute, myelin.selector is called to
-# determine the selector to match the attribute. 
-# By default, this is any alement with a name that matches the attribute.
-myelin.selector = (attribute) -> "[name=#{attribute}]"
-
-# Used intertally to see if something is an axon.
+# Used intertally to see if something is a handler class.
 # Guesses by duck-typing the prototype.
-isAxonClass = (fn) ->
+isHandlerClass = (fn) ->
     return (_.isFunction fn) and
            (fn::) and (fn::constructor) and
            (fn::get) and (fn::set) and
            (fn::clean) and (fn::render)
 
-# An internal structure that does all the event binding and unbinding so that
-# developers can keep their axons simple and not see the man behind the curtain.
-# Synapses can take a number of parameters in their 'options' argument
-#   @selector:      The selector to use to determine the elements to bind to.
-#                   This selector will be looked up in the scope of the view's
-#                   `el`. Furthermore, all events will be delegated instead of
-#                   bound if possible, so dynamically added elements don't have
-#                   to be watched for. If `selector` is falsy or the string
-#                   'this', then the view's `el` will be used.
-#   @axon:          The axon to use. If unspecified, the axon will be looked up
-#                   at binding time using myelin.map and myelin.default 
-#   @event:         The DOM event to bind to. Overrides @axon.event if given.
-#   @attribute:     The attribute to sync. Overrides @axon.attribute if given.
-class Synapse
-    constructor: (options) ->
-        options = options or {}
+
+class Axon
+    constructor: (options={}) ->
+        # if attribute is not given, the attribute function will be used to
+        # dynamically determine the attribute from the elements
+        if options.attribute then @attribute = options.attribute
+
+        # If selector is not given, then the attribute _must_ be given, and will
+        # be used immediately with the Axon.selector function to determine the
+        # selector. `selector` will never be a function on an instantiated Axon.
+        if options.selector is 'this' then @selector = false
+        else if options.selector? then @selector = options.selector
+        else @selector = @selector @attribute
+
+        # If a handler and event are given, override the handler's event
+        if options.handler instanceof Handler
+            @handler = options.handler
+            if options.event then @handler.event = options.event
+        else if options.handler and options.event
+            @handler = new options.handler event: options.event
+        else if options.handler
+            @handler = new options.handler
+        # If only an event is given, save it for later instantiation
+        else if options.event then @event = options.event
+
+        # These are the links that an axon needs before it can be used.
         @scope = @model = null
-        @selector = options.selector
-        if @selector is 'this' then @selector = false
-        @axon = options.axon
-        @detectAxon = not options.axon
 
-        @event = options.event or @axon?.event or false
-        @attribute = options.attribute or @axon?.attribute or false
+    # selector works like a classmethod: it will create a selector from an
+    # attribute at instantiation, but `selector` will always be a string
+    # (not a function) on instantiated objects.
+    selector: (attribute) -> "[name=#{attribute}]"
 
-        @assignScope(options.scope) if options.scope
-        @assignModel(options.model) if options.model
+    # Dynamically selects the elements to be worked on. Can't be used until a
+    # scope has been assigned.
+    el: =>
+        throw new Error "Axons can't use elements without scope" unless @scope
+        if @selector then $(@selector, @scope) else $(@scope)
 
-        @push()
+    # Fallback model attribute to sync to. By default, uses the html 'name'
+    # attribute.
+    attribute: (el) => el.attr 'name'
 
-    # Dynamically select an axon that works for @el
-    chooseAxon: =>
-        el = @el()
-        for [selector, axon] in myelin.map
-            if el.is(selector) then return new axon
-        return new myelin.default
+    # Fallback handler finder. By default, uses myelin.map.
+    handler: (el) =>
+        for [selector, handler] in myelin.map
+            if el.is(selector) then return new handler {@event}
+        return new Handler {@event}
 
-    # True iff. the synapse has both elements and a model to work with.
+    # True iff. the axon has both elements and a model to work with.
     ready: => return @scope and @model
 
-    # Lazily determine the selector so as to use @axon.selector if available
-    sel: => @selector or @axon.selector
-
-    # Lazily selects the elements being affected so as to include dynamically
-    # added elements
-    el: =>
-        selector = @sel()
-        if selector then $(selector, @scope) else $(@scope)
-
-    # Lazily determines the attribute to sync to so as to include data from
-    # dynamically added elements
-    attr: =>
-        attr = @attribute or @axon.attribute or myelin.attribute
-        if _.isFunction attr then attr @el() else attr
+    # A function to lazily get data that may or may not depend upon the elements
+    # being synced to. For example, the model `attribute` may be a string or a
+    # function that only resolves when we know the elements.
+    lazy: (attr) =>
+        if _.isFunction @[attr] then @[attr](@el())
+        else @[attr]
 
     # Assign a scope from which to select elements. This should be called with
     # a view's `el`. If the synapse already had a scope (i.e. if the view is
@@ -241,7 +208,6 @@ class Synapse
         return if _.isEqual @scope, scope
         if @scope then @unbindDom()
         @scope = scope
-        if @detectAxon then @axon = (if @scope then @chooseAxon() else null)
         if @scope then @bindDom()
 
     # Assign a model to sync to. If the synapse already has a model (i.e. if the
@@ -256,22 +222,32 @@ class Synapse
     # view changes model or el; updates only happen naturally on events.
     push: =>
         return unless @ready()
-        val = @model.get @attr()
-        if val is undefined then @axon.undefine @el()
-        else @axon.set @el(), @axon.render val
+        value = @model.get @lazy('attribute')
+        handler = @lazy('handler')
+        handler.set @el(), handler.render value
+
+    # Gets the domEvent from the handler and resolves it if necessary
+    domEvent: =>
+        event = @lazy('handler').domEvent
+        if _.isFunction event then event @el() else event
+
+    # Gets the modelEvent from the handler and resolves it if necessary
+    modelEvent: =>
+        event = @lazy('handler').modelEvent
+        if _.isFunction event then event @lazy('attribute') else event
 
     # Sets all the DOM-side events
     bindDom: (bind='bind', delegate='delegate') =>
-        return unless @axon.event
-        event = @event or @axon?.event or myelin.event
-        selector = @sel()
-        $(@scope)[bind](event, @domChange) unless selector
-        $(@scope)[delegate](selector, event, @domChange) if selector
+        event = @domEvent()
+        return unless event
+        if @selector then $(@scope)[delegate](@selector, event, @domChange)
+        else $(@scope)[bind](event, @domChange)
 
     # Sets all the model-side events
     bindModel: (bind='bind') =>
-        return unless @axon.watchModel
-        @model[bind] "change:#{@attr()}", @modelChange
+        event = @modelEvent()
+        return unless event
+        @model[bind] event, @modelChange
 
     # Unbinds DOM-side events
     unbindDom: => @bindDom 'unbind', 'undelegate'
@@ -283,27 +259,29 @@ class Synapse
     domChange: (e) =>
         return unless @model
         el = $ e.target
-        value = @axon.clean @axon.get el
+        handler = @lazy('handler')
+        value = handler.clean handler.get el
         data = {}
-        data[@attr()] = value
+        data[@lazy('attribute')] = value
         @model.set data
+        if handler.preventDefault then return false
 
     # Called when the model changes. Renders the data and sets it on the DOM.
-    modelChange: (model, val) =>
+    modelChange: (model, value) =>
         return unless @scope
-        @axon.set @el(), @axon.render val
+        handler = @lazy('handler')
+        handler.set @el(), handler.render value
 
-# An internal class to parse the user-inputed sync settings into an array
-# of Synapses
+
+# An internal class to parse the user sync settings into an array of Axons
 class Parser
-    # Any options given in @options will be passed along to the Synapse
-    # constructor.
-    constructor: (@view, @options) ->
-        @synapses = []
+    constructor: (@view) -> @axons = []
 
     # Break a selector into the event componet (if any) and the selector.
     # Recognized events are white-listed in myelin.events.
     normalize: (selector) =>
+        if selector in myelin.events
+            return event: selector, selector: false
         eventRegex = RegExp "^(#{myelin.events.join('|')})\\s+(.*)"
         match = selector.match eventRegex
         if match then return selector: match[2], event: match[1]
@@ -313,54 +291,49 @@ class Parser
     parse: (sync) =>
         # Unroll arrays
         if _.isArray sync then _.map sync, @parse
-        # Instantiate axon classes
-        else if isAxonClass sync then @make axon: new sync
-        # Send axons off without selectors
-        else if sync instanceof myelin.Axon then @make axon: sync
+        # Axon instances are already done
+        else if sync instanceof Axon then @axons.push sync
         # Resolve functions with the view as their context
         else if _.isFunction sync then @parse sync.call @view
-        # If they gave us just `string`, interpret it as an attribute
-        # and generate the selector using myelin.selector
-        else if _.isString sync then @parsePair sync, (myelin.selector sync)
+        # If they gave us just `string`, interpret it as a selector
+        else if _.isString sync then @axons.push new Axon @normalize sync
         # If they gave an object, parse each key-value pair
         else @parsePair(key, value) for key, value of sync
         return this
 
-    # Parse a {attribute: selector or axon} pair into a Synapse.
+    # Parse a {attribute: selector or handler} pair into a Synapse.
     parsePair: (attr, option) =>
-        # A helper function to call the synapse maker function with
-        # attribute: attr set automatically
-        make = (ops) => @make _.extend attribute: attr, ops
+        # Helper to make a new Axon with attribute: attr
+        make = (options={}) =>
+            options.attribute or= attr
+            @axons.push new Axon options
         # A falsy `option` means 'ignore this attribute'.
         # Allows resolved functions to say 'never mind'.
         if (not option) then return
-        # {attr: true} means 'use the default selector'
-        else if option is true then make selector: myelin.selector attr
+        # {attr: true} means 'make an axon with no selector'
+        else if option is true then make()
         # Given an array of selectors, make a synapse for each one.
         else if _.isArray option then @parsePair(attr, o) for o in option
-        # Given an axon class, we instantiate it and use it to make a synapse.
-        else if isAxonClass option
-            make axon: new option (myelin.selector attr)
-        # Given an axon instanceo, we use it to make a synapse
-        else if option instanceof myelin.Axon then make axon: option
+        # Given a handler class, we instantiate it and use it
+        else if isHandlerClass option then make handler: option
+        else if option instanceof Handler then make handler: option
+        else if option instanceof Axon
+            option.attribute = attr
+            @axons.push option
         # If `option` is a non-axon function, resolve it with the view as the
         # context and the selector as an argument.
         else if _.isFunction option
             @parsePair attr, option.call(@view, attr)
         # If `option` is a selector, make sure to split off any event first
         else if _.isString option then make @normalize option
+        # Otherwise try passing the arguments to axon
+        else if _.isObject option then make option
         # Complain if the attr wasn't valid.
         else throw new Error "Unrecognized sync option for #{attr}: #{option}"
         return this
 
-    # Creates a synapse from `selector` and `desc`. `desc` can be anything that
-    # makes it through @valid.
-    make: (options) =>
-        @synapses.push new Synapse options
-        return this
 
-
-# The myelin view. Makes synapses based on the @sync field in order to sync
+# The myelin view. Makes axons based on the @sync field in order to sync
 # between the DOM and models. @sync can be a number of types
 #
 # ## @sync types:
@@ -385,7 +358,7 @@ class Parser
 #       A key with a false value will be ignored
 #   * true
 #       A key with a true value will look up the axon and selector to use at
-#       event time, using myelin.lookup, myelin.default, and myelin.selector
+#       event time, using myelin.lookup, myelin.dynamic, and myelin.selector
 #   * Array
 #       {key: [val1, val2]} is identical to {key: val1, key: val2}
 #   * String
@@ -399,19 +372,40 @@ class Parser
 #   * Function
 #       Will be resolved with the view as the context and the attribute as an
 #       argument, then recursively re-parsed.
-class myelin.View extends Backbone.View
+class View extends Backbone.View
     constructor: ->
         super
-        @synapses = (new Parser).parse(@sync).synapses
+        @axons = (new Parser).parse(@sync).axons
         @delegateLinks()
 
     delegateLinks: (options) =>
         @model = options?.model or @model
         @el = options?.el or @el
-        for synapse in @synapses
-            if @el then synapse.assignScope(@el)
-            if @model then synapse.assignModel(@model)
-            if @el or @model then synapse.push()
+        for axon in @axons
+            if @el then axon.assignScope(@el)
+            if @model then axon.assignModel(@model)
+            if @el or @model then axon.push()
 
 # Expose myelin.View as Backbone.SyncView for simplicity.
-Backbone.SyncView = myelin.View
+myelin.View = Backbone.SyncView = View
+
+# A list used to intelligently match axons to elements.
+# Each element in myelin.map should be a [selector, axon] two-tuple.
+# If an element matches `selector` (using .is()) then `axon` will be used for
+# that element.  Order matters; the first match is used.
+# Override myelin.map to change the default axon matching.
+myelin.map = [
+    ['a', Link]
+    ['input:submit,button:submit', Submit]
+    ['button,input:button', Button]
+    ['input:checkbox', Checkbox]
+    ['input:radio', Radio]
+    # Uncomment to enable the Password axon
+    # ['input:password', Password]
+    ['select,input,textarea', Input]
+]
+
+myelin.Axon = Axon
+
+handlers = {Handler, Link, Input, Button, Submit, Checkbox, Radio, Password}
+_.extend myelin, handlers
