@@ -32,7 +32,7 @@ If you're the impatient type, you might want to jump directly to some
 ##### Quick Tip
 
 The {attr: [name=attr]} sync pattern is so common that you can use the shortcut
-{attr: true}, and it means the same thing.
+{attr: true}. It means the same thing.
 
 # How to Use
 
@@ -40,7 +40,7 @@ Myelin is used by creating myelin Views with a `sync` property that controls
 how objects are linked. Before linking can be done, views must also have both
 an `el` property and a `model` property set. You are welcome to set these
 any time after view creation and change them on the fly, so long as you call
-View.link any time you change `el` or `model`.
+View.link() any time you change `el` or `model`.
 
 The `sync` property describes links in a number of formats. Before we go over
 them all, you have to understand how a link works. Each link consists of three
@@ -52,11 +52,10 @@ Attributes are the most simple component of a link. They are simply a string
 naming the attribute on the model that you want to sync your data to. If a
 string isn't quite flexible enough, you can also provide a function that takes
 the DOM elements being linked and returns the attribute to sync to at
-event-time. Because the function depends upon the elements being synced, if you
-give the attribute as a function then you must give the selector as a string.
-If the attribute is omitted then a fallback function (that depends upon the
-selector) will be used. If the attribute is omitted or is a function then a
-selector __must__ be provided.
+event-time. If the attribute is omitted then a fallback function (that depends
+upon the selector) will be used. Because attribute functions depend upon the
+elements being synced, if the attribute is omitted or is a function then the
+selector __must__ be provided as a string.
 
 The fallback function returns the "name" attribute of the elements being linked.
 To change the fallback function, see the Axon section below.
