@@ -24,15 +24,15 @@ will be reflected on the model. Any changes to the model's "user" attribute will
 be reflected on the input. Finally, any change to the model's "message"
 attribute will be reflected on the span.
 
+__Quick Tip__
+
+The {attr: [name=attr]} sync pattern is so common that you can use the shortcut
+{attr: true}. It means the same thing.
+
 ## Quickly now
 
 If you're the impatient type, you might want to jump directly to some
 [examples], or perhaps the [annotated source].
-
-##### Quick Tip
-
-The {attr: [name=attr]} sync pattern is so common that you can use the shortcut
-{attr: true}. It means the same thing.
 
 # How to Use
 
@@ -55,7 +55,7 @@ the DOM elements being linked and returns the attribute to sync to at
 event-time. If the attribute is omitted then a fallback function (that depends
 upon the selector) will be used. Because attribute functions depend upon the
 elements being synced, if the attribute is omitted or is a function then the
-selector __must__ be provided as a string.
+selector _must_ be provided as a string.
 
 The fallback function returns the "name" attribute of the elements being linked.
 To change the fallback function, see the Axon section below.
@@ -72,7 +72,7 @@ use the special 'this' selector.
 
 You may also provide a function to determine the selector; this function will
 be called with the `attribute` of the link. If the selector is omitted or is
-a function then an attribute __must__ be provided.
+a function then an attribute _must_ be provided.
 
 The fallback function selects elements with the same name as the attribute.
 To change the fallback function, see the Axon section below.
@@ -111,12 +111,14 @@ data manipulation, cleaning, or rendering then extend one of these handlers.
 The default handler is used for divs, spans, and other elements that don't take
 user input. It works as follows:
 
-    * __get__ accesses inner html
-    * __set__ sets inner html
-    * __clean__ performs no action
-    * __render__ performs no action
-    * __domEvent__ is false, as these elements never change on their own
-    * __modelEvent__ returns "change:#{attribute}"
+  * __get__ accesses inner html
+  * __set__ sets inner html
+  * __clean__ performs no action
+  * __render__ performs no action
+  * __domEvent__ is false, as these elements never change on their own
+  * __modelEvent__ returns "change:#{attribute}"
+
+Myelin comes with a number of handlers built in. They are:
 
 ### Link
 
@@ -179,29 +181,29 @@ Sync objects are given in the form
 
 Where specification can take the following forms:
 
-    * false
-        - if the specification is false then the attribute will be ignored.
-          This allows specification functions to essentially say 'never mind'.
-    * true
-        - if the specification is true then a link will be made where both the
-          handler and selector are omitted.
-    * array
-        - each {attribute: specification} pair will be parsed in turn.
-    * function
-        - the funciton will be resolved with the view as it's context and the
-          attribute as a parameter. The result will be parsed recursively.
-    * handler class
-        - a link will be made between the attribute and an instantiated version
-          of the handler class. The selector will be omitted.
-    * handler instance
-        - a link will be made between the attribute and the handler. The
-          selector will be omitted.
-    * string
-        - a string specification is treated as a selector. A link will be made
-          between the attribute and the selector with the handler omitted.
-    * object
-        - an object can be passed with 'handler', 'selector', and optionally
-          'event' properties, which will all be used to make the link.
+  * false
+    - if the specification is false then the attribute will be ignored.
+      This allows specification functions to essentially say 'never mind'.
+  * true
+    - if the specification is true then a link will be made where both the
+      handler and selector are omitted.
+  * array
+    - each {attribute: specification} pair will be parsed in turn.
+  * function
+    - the funciton will be resolved with the view as it's context and the
+      attribute as a parameter. The result will be parsed recursively.
+  * handler class
+    - a link will be made between the attribute and an instantiated version
+      of the handler class. The selector will be omitted.
+  * handler instance
+    - a link will be made between the attribute and the handler. The
+      selector will be omitted.
+  * string
+    - a string specification is treated as a selector. A link will be made
+      between the attribute and the selector with the handler omitted.
+  * object
+    - an object can be passed with 'handler', 'selector', and optionally
+      'event' properties, which will all be used to make the link.
 
 ##### Convenient Events
 
