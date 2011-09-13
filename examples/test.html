@@ -72,7 +72,7 @@
                     immediate: ['keyup', '.immediate']
                 }
 
-            @view = new View model; new Backbone.Model
+            @view = new View model: new Backbone.Model
                 text: "Welcome!"
                 radio: 1
         </script>
@@ -84,11 +84,10 @@
 
             class View2 extends myelin.View
                 el: '#example2'
-                sync: {ex2: 'this'}
-                initialize: => @model = new Backbone.Model
-                    ex2: "initial"
+                sync: {ex2: 'keyup this'}
 
-            @view2 = new View2
+            @view2 = new View2 model: new Backbone.Model
+                ex2: "initial"
         </script>
 
     </body>
