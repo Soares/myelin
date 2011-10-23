@@ -42,6 +42,11 @@ reduced to
 If you're the impatient type, you might want to jump directly to some
 [[examples]], or perhaps the [[annotated source]].
 
+## Quickly now
+
+If you're the impatient type, you might want to jump directly to some
+[examples], or perhaps the [annotated source]. (links forthcoming)
+
 # How to Use
 
 Myelin is used by creating myelin Views with a `sync` property that controls
@@ -129,6 +134,7 @@ user input. It works as follows:
   * __render__ performs no action
   * __domEvent__ is false, as these elements never change on their own
   * __modelEvent__ returns "change:#{attribute}"
+  * __preventDefault__ is false
 
 ### Input
 
