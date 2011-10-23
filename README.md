@@ -10,29 +10,37 @@ of Backbone.View, and declare a 'sync' attribute on your view, like this:
 Then, if you have HTML like this:
 
     <form id="myForm">
-        <input name="name">
+        <input name="user">
         <span id="message"></span>
     </form>
 
-And you make a view like this:
+And a model like this:
 
     model = new Backbone.Model message: "Hello, world!"
+
+And a view like this:
+
     view = new MyView {el: '#myForm', model}
 
-Then your input and span are now linked to your model. Any changes to the input
-will be reflected on the model. Any changes to the model's "user" attribute will
-be reflected on the input. Finally, any change to the model's "message"
-attribute will be reflected on the span.
+Then the view will link the form to the model. Any changes to the "user" input
+field will update the "user" attribute on the model, and any change to the
+"message" attribute of the model will be reflected in the message span.
 
 __Quick Tip__
 
 The {attr: [name=attr]} sync pattern is so common that you can use the shortcut
-{attr: true}. It means the same thing.
+{attr: true}. It means the same thing. So, for example, the above model could be
+reduced to
+
+    class MyView extends myelin.View
+        sync:
+            user: true
+            message: '#message'
 
 ## Quickly now
 
 If you're the impatient type, you might want to jump directly to some
-[examples], or perhaps the [annotated source].
+[[examples]], or perhaps the [[annotated source]].
 
 # How to Use
 
@@ -40,11 +48,12 @@ Myelin is used by creating myelin Views with a `sync` property that controls
 how objects are linked. Before linking can be done, views must also have both
 an `el` property and a `model` property set. You are welcome to set these
 any time after view creation and change them on the fly, so long as you call
-View.link() any time you change `el` or `model`.
+view.link() any time you change `el` or `model`.
 
-The `sync` property describes links in a number of formats. Before we go over
-them all, you have to understand how a link works. Each link consists of three
-major parts: an __attribute__, a __selector__, and a __handler__.
+The `sync` property describes links between forms and models in a number of
+formats. Before we go over the different formats for links, you must understand
+how links works. Each link consists of three parts: an __attribute__, a
+__selector__, and a __handler__.
 
 ## Attributes
 
@@ -54,11 +63,13 @@ string isn't quite flexible enough, you can also provide a function that takes
 the DOM elements being linked and returns the attribute to sync to at
 event-time. If the attribute is omitted then a fallback function (that depends
 upon the selector) will be used. Because attribute functions depend upon the
-elements being synced, if the attribute is omitted or is a function then the
-selector _must_ be provided as a string.
+elements being synced, if the attribute is a function then the selector _must_
+be provided as a string.
 
 The fallback function returns the "name" attribute of the elements being linked.
-To change the fallback function, see the Axon section below.
+For example, if you link create a link to an element `<input name="test">` and
+you don't provide an attribute, the element will be synced to the `test`
+attribute.
 
 ## Selectors
 
@@ -71,11 +82,12 @@ If you want to bind to the actual view `el` (instead of the view's children),
 use the special 'this' selector.
 
 You may also provide a function to determine the selector; this function will
-be called with the `attribute` of the link. If the selector is omitted or is
-a function then an attribute _must_ be provided.
+be called with the `attribute` of the link. If the selector is a function then
+an attribute _must_ be provided.
 
 The fallback function selects elements with the same name as the attribute.
-To change the fallback function, see the Axon section below.
+For example, if you create a link to the attribute 'user', then the selector
+`name="user"` will be linked.
 
 ## Handlers
 
@@ -87,24 +99,24 @@ core, handlers preform four actions:
  * __render__ model data for an element
  * __set__ rendered data on an element
 
-The also control the events in three ways:
+The also control the linking in three ways:
 
  * __domEvent__
     - controls the DOM event that triggers syncing
     - if falsy then the model will not respond to DOM changes
-    - can be a function taking the elements being bound
- * __modelEvent__ controls the model event that triggers syncing
+    - can be a function which will be passed the elements being synced
+ * __modelEvent__
     - controls the model event that triggers syncing
     - if falsy then the DOM will not respond to model changes
-    - can be a function taking the attribute being synced
+    - can be a function which will be passed the attribute being synced
  * __preventDefault__
     - controls whether or not the default DOM event is prevented
 
 Handlers can always be left out of a link, in which case they will be inferred
-from the elements being bound using myelin.map and myelin.handler (see below).
+from the elements being bound using myelin.handlerMap and myelin.defaultHandler.
 
-A handful of handlers come built in to Myelin. If you want to provide custom
-data manipulation, cleaning, or rendering then extend one of these handlers.
+A handful of handlers come built in to Myelin. You can provide your own handlers
+to customize data manipulation. The built in handlers are as follows:
 
 ### Handler
 
@@ -118,42 +130,37 @@ user input. It works as follows:
   * __domEvent__ is false, as these elements never change on their own
   * __modelEvent__ returns "change:#{attribute}"
 
-Myelin comes with a number of handlers built in. They are:
-
-### Link
-
-A Handler for anchors. Similar to Handler, but `domEvent` is "click", meaning
-the model attribute will be changed whenever the link is clicked.
-
 ### Input
 
 A Handler used for most inputs. `get`s and `set`s using jQuery's .val().
 `domEvent` is "change", meaning the model will be synced whenever a "change"
-event is fired.
+event is fired. Used by default for input and select elements.
+
+### ImmediateInput
+
+An Input that syncs on "keyup" instead of "change". Used by default for
+textareas.
 
 ### Button
 
-Like Input, but `domEvent` is "click" and `modelEvent` is `false`. Buttons
-ignore changes on the model by default because the common use case for syncing
-buttons is to have a number of buttons that each set their own value on the
-model when clicked. If they all synced to the model, then when any one was
-clicked, all the others would change their value.
+Like Input, but `domEvent` is "click" and `modelEvent` is `false`. Buttons, by
+default, do not update to match model attributes.
 
 ### Submit
 
-Like Button, but prevents the default DOM event from continuing.
+Like Button, but prevents the default DOM event from being fired.
 
 ### Checkbox
 
-An Input handler that handles checking and unchecking it's element. Note that
+An Input handler that handles checking and unchecking its element. Note that
 `render` and `clean` will both convert their values to Booleans.
 
 ### Radio
 
 An Input handler that handles selecting the correct radio element. The selector
-for a radio handler should match a set of radio buttons. `get` will return the
-value of the checked button, and `set` will ensure that only the button with
-the matching value is checked.
+should match a whole set of radio buttons. `get` will return the value of the
+checked button, and `set` will ensure that only the button with the matching
+value is checked.
 
 ### Password
 
@@ -188,9 +195,10 @@ Where specification can take the following forms:
     - if the specification is true then a link will be made where both the
       handler and selector are omitted.
   * array
-    - each {attribute: specification} pair will be parsed in turn.
+    - given {attr: [selector1, selector2]}, the links `attr: selector1` and
+      `attr: selector2` will be created.
   * function
-    - the funciton will be resolved with the view as it's context and the
+    - the function will be resolved with the view as it's context and the
       attribute as a parameter. The result will be parsed recursively.
   * handler class
     - a link will be made between the attribute and an instantiated version
@@ -199,13 +207,12 @@ Where specification can take the following forms:
     - a link will be made between the attribute and the handler. The
       selector will be omitted.
   * string
-    - a string specification is treated as a selector. A link will be made
-      between the attribute and the selector with the handler omitted.
+    - treated as a selector. A link will be made with the handler omitted.
   * object
     - an object can be passed with 'handler', 'selector', and optionally
       'event' properties, which will all be used to make the link.
 
-##### Convenient Events
+#### Convenient Events
 
 A selector string can be given in the form "event selector" (a jQuery event
 separated from the selector by whitespace). In this case, the event will be
@@ -214,8 +221,8 @@ split off from the selector and will override handler.domEvent. For example,
     {name: "keyup [name=firstname]"}
 
 will create a link between the attribute 'name' and the selector
-'[name=firstname]' with a dynamically-selected handler, but will listen for
-the 'keyup' event instead of for the handler's domEvent.
+'[name=firstname]'. An Input handler will be used, but the handler will listen
+for the 'keyup' event instead of the usual 'change' event.
 
 You can also provide an 'event' property in a specification as follows:
 
@@ -234,7 +241,7 @@ is identical to
 
     sync: {first_name: true, last_name: true}
 
-You can also provide Axon instances directly, though that's only recommended
+You can also provide [[Axon]] instances directly, though that's only recommended
 for advanced users.
 
 # Under the Hood
@@ -246,8 +253,8 @@ four parameters in an object in the constructor. They are:
     * handler
     * event
 
-`event`, if given, overrides handler.domEvent. See the source code for more
-details.
+`event`, if given, overrides handler.domEvent. See the [[annotated source]] for
+more details.
 
 # Configuration
 
@@ -255,43 +262,33 @@ Myelin can be configured in a variety of ways:
 
 ## Changing Handler assignment
 
-If you want to change the default handlers, override `myelin.map`.
-`myelin.map` is a list of (selector, handler) two-tuples that determine which
-handler is used for which selector (if no handler is specified for a link).
+If you want to change the default handlers, override `myelin.handlerMap`.
+`myelin.handlerMap` is a list of (selector, handler) two-tuples that determine
+which handler is used for which selector (if no handler is specified).
 Handlers are matched from top to bottom, and if no match is found then
-`myelin.handler` is used instead.
-
-If you want to change the fallback handler (for when no handler is found),
-change `myelin.handler`, which is handler by default.
-
-If this isn't enough for you, you can also override Axon.handler, the function
-which chooses handlers if a handler is not specified.
+`myelin.defaultHandler` is used instead.
 
 ## Changing the fallback attribute
 
 If an attribute is omitted, it is determined using the Axon.attribute function,
-which takes the elements being linked and returns the model attribute to sync
-to ($el.attr('name') by default). To change this behavior, override
-Axon.attribute.
+which takes the linked elements and returns the model attribute to sync to.
+To change this behavior, override Axon.attribute.
 
 ## Changing the fallback selector
 
 If a selector is omitted, it is determined using the Axon.selector function,
-which takes the model attribute and returns a selector ("[name=#{attribute}]"
-by default). To change this behavior, override Axon.selector.
+which takes the model attribute and returns a selector.
+To change this behavior, override Axon.selector.
 
 ## Changing Axon
 
 If you find yourself overriding a number of Axon functions, it may be easier
 to subclass Axon and simply tell myelin to use a different Axon class. To
 do this, simply set `myelin.axon` to your Axon class. Note that your custom
-axon must be a child of Axon in order for this to work.
-
-# Inspiration
-
-synapse
+axon must be a child of myelin.Axon if you want things to work properly.
 
 # Resources
 
-backbone.js
-coffeescript
+[[backbone.js]]
+[[coffeescript]]
+[[underscore.js]]

@@ -8,7 +8,7 @@ previousMyelin = root.myelin
 if typeof exports isnt 'undefined' then myelin = exports
 else myelin = root.myelin = {}
 
-# require underscore, if we're on the server, and it's not already present.
+# require underscore, if we're on the server, and if it's not already present.
 _ = root._
 if not _ and require? then _ = require('underscore')._
 
@@ -29,6 +29,8 @@ myelin.noConflict = ->
 # recognized as events and not part of the selector.
 # myelin whitelists events instead of blacklisting tags to that you can include
 # weird tags from non-html documents such as SVG or custom XML.
+# Event class names (such as keyUp.myEvent) are recognized so long as the part
+# before the dot is in myelin.events.
 myelin.events = [
     'blur', 'focus', 'focusin', 'focusout', 'load', 'resize', 'scroll'
     'unload', 'click', 'dblclick', 'mousedown', 'mouseup', 'mousemove'
@@ -37,11 +39,13 @@ myelin.events = [
 ]
 
 # A class that handles all interaction between the DOM and the Model.
+#
 # It performs the following four basic actions:
 #   get: given an element, returns the value to be synced for that element
 #   clean: given the result of `get`, cleans it for setting on the model
 #   render: given a model value, render it for display on the element
 #   set: given an element and the result of `render`, set it on the element
+#
 # Handlers also have three attributes that control behavior:
 #   domEvent: the event to listen for on the element (click, change, etc.)
 #       can also be a function that takes the element and returns the event
@@ -50,6 +54,7 @@ myelin.events = [
 #       can also be a function that takes the attribute and returns the event
 #       if falsy, the element will not change for model events
 #   preventDefault: if true, prevents the default DOM event from occuring
+#
 # For convenience, the constructor can take an 'event' kwarg in an options dict,
 # which, if present, overrides domEvent.
 class Handler
@@ -78,15 +83,15 @@ class Handler
     # Whether or not the default DOM event should be stifled
     preventDefault: false
 
-# A handler specifically meant for html anchors
-class Link extends Handler
-    domEvent: 'click'
-
 # A handler that gets and sets using jQuery .val()
 class Input extends Handler
     domEvent: 'change'
     get: (el) -> el.val()
     set: (el, value) -> el.val value
+
+# An input handler that syncs on keyup
+class ImmediateInput extends Input
+    domEvent: 'keyup'
 
 # An Input handler that responds to click events and ignores the model
 # The common use pattern for buttons is to have a number of buttons with
@@ -102,7 +107,7 @@ class Button extends Input
         if el.is('button') then el.html(value) else el.val(value)
 
 # An Input handler for submit buttons. It works just like Button, but also
-# prevents the default DOM event, which would submit the form.
+# prevents the default DOM event, which would submit a form.
 class Submit extends Button
     preventDefault: true
 
@@ -149,6 +154,7 @@ isHandlerClass = (fn) ->
 
 
 # The Axon class preforms the binding between the element and the model.
+#
 # Axons take four parameters in the options object in their constructor:
 #   selector: the selector for the element being bound
 #   attribute: the attribute on the model to be synced
@@ -165,12 +171,12 @@ isHandlerClass = (fn) ->
 #
 # If the attribute is missing, it is inferred from the selector at event-time
 # by looking at the elements matched by `selector`. By default, this resolves to
-# $(element).attr('name'). Override Axon.attribute to change this behavior.
+# $(elements).attr('name'). Override Axon.attribute to change this behavior.
 #
 # If the handler is missing, it is inferred from the elements matched by the
-# selector at event-time. By default, myelin.map is used to determine which
-# elements match which handlers. You can either modify myelin.map or override
-# Axon.handler to change this behavior.
+# selector at event-time. By default, myelin.handlerMap is used to determine
+# which elements match which handlers. You can either modify myelin.handlerMap
+# or override Axon.handler to change this behavior.
 #
 # Event is used as a convenience to override handler.domEvent. If not given then
 # handler.domEvent simply will not be overridden.
@@ -190,12 +196,16 @@ class Axon
         # selector. `selector` will never be a function on an instantiated Axon.
         if options.selector then @selector = options.selector
         else @selector = @selector @attribute
+
+        # Outside of an axon, the 'this' selector means 'link the view's `el`'
+        # Inside of an axon, a false selector means the same thing.
         if @selector is 'this' then @selector = false
 
-        # If a handler and event are given, override the handler's event
+        # Instantiate handler classes (if necessary) and override dom events
+        # (if necessary).
         if options.handler instanceof Handler
             @handler = options.handler
-            if options.event? then @handler.event = options.event
+            if options.event? then @handler.domEvent = options.event
         else if options.handler and options.event?
             @handler = new options.handler event: options.event
         else if options.handler
@@ -218,14 +228,15 @@ class Axon
         if @selector then $(@selector, @scope) else $(@scope)
 
     # Fallback model attribute to sync to. By default, uses the html 'name'
-    # attribute.
+    # attribute. `el` will be jQuery wrapped.
     attribute: (el) => el.attr 'name'
 
-    # Fallback handler finder. By default, uses myelin.map.
+    # Fallback handler finder. By default, uses myelin.handlerMap, and falls
+    # back to myelin.defaultHandler. `el` will be jQuery wrapped.
     handler: (el) =>
-        for [selector, handler] in myelin.map
+        for [selector, handler] in myelin.handlerMap
             if el.is(selector) then return new handler {@event}
-        return new myelin.handler {@event}
+        return new myelin.defaultHandler {@event}
 
     # True iff. the axon has both elements and a model to work with.
     ready: => return @scope and @model
@@ -234,8 +245,7 @@ class Axon
     # being synced to. For example, the model `attribute` may be a string or a
     # function that only resolves when we know the elements.
     lazy: (attr) =>
-        if _.isFunction @[attr] then @[attr](@el())
-        else @[attr]
+        if _.isFunction @[attr] then @[attr](@el()) else @[attr]
 
     # Assign a scope from which to select elements. This should be called with
     # a view's `el`. If the synapse already had a scope (i.e. if the view is
@@ -255,7 +265,9 @@ class Axon
         if @model then @bindModel()
 
     # Update the document with the model's current data. Required any time a
-    # view changes model or el; updates only happen naturally on events.
+    # view changes model or el; updates only happen automatically on events.
+    # If `modelEvent` is falsy, no changes will be made, because the model does
+    # not push to the document.
     push: =>
         return unless @ready() and @modelEvent()
         value = @model.get @lazy('attribute')
@@ -263,11 +275,15 @@ class Axon
         handler.set @el(), handler.render value
 
     # Gets the domEvent from the handler and resolves it if necessary
+    # handler.domEvent is either a value or a function that takes the elements
+    # being linked.
     domEvent: =>
         event = @lazy('handler').domEvent
         if _.isFunction event then event @el() else event
 
     # Gets the modelEvent from the handler and resolves it if necessary
+    # handler.modelEvent is either a value or a function that takes the
+    # attribute being linked.
     modelEvent: =>
         event = @lazy('handler').modelEvent
         if _.isFunction event then event @lazy('attribute') else event
@@ -295,17 +311,17 @@ class Axon
     domChange: (e) =>
         return unless @model
         el = $ e.target
-        handler = @lazy('handler')
+        handler = @lazy 'handler'
         value = handler.clean handler.get el
         data = {}
-        data[@lazy('attribute')] = value
+        data[@lazy 'attribute'] = value
         @model.set data
         if handler.preventDefault then return false
 
     # Called when the model changes. Renders the data and sets it on the DOM.
     modelChange: (model, value) =>
         return unless @scope
-        handler = @lazy('handler')
+        handler = @lazy 'handler'
         handler.set @el(), handler.render value
 
 
@@ -315,13 +331,14 @@ class Parser
 
     # Break a selector into the event componet (if any) and the selector.
     # Recognized events are white-listed in myelin.events.
+    # Events with classes (i.e. keyup.MyEvent1.MyEvent2) are also recognized.
     normalize: (selector) =>
         if selector in myelin.events
             return event: selector, selector: false
-        eventRegex = RegExp "^(#{myelin.events.join('|')})\\s+(.*)"
+        eventRegex = RegExp "^((?:#{myelin.events.join('|')})(?:\\.\\S+)*)\\s+(.*)"
         match = selector.match eventRegex
-        if match then return selector: match[2], event: match[1]
-        return selector: selector
+        if match then selector: match[2], event: match[1]
+        else selector: selector
 
     # Parse any form of user-entered sync settings.
     parse: (sync) =>
@@ -331,8 +348,8 @@ class Parser
         else if sync instanceof Axon then @axons.push sync
         # Resolve functions with the view as their context
         else if _.isFunction sync then @parse sync.call @view
-        # If they gave us just `string`, interpret it as a selector
-        else if _.isString sync then @axons.push new myelin.axon @normalize sync
+        # If they gave us just `string`, interpret it as a {string: true}
+        else if _.isString sync then @parsePair sync, true
         # If they gave an object, parse each key-value pair
         else @parsePair(key, value) for key, value of sync
         return this
@@ -348,7 +365,7 @@ class Parser
         if (not option) then return
         # {attr: true} means 'make an axon with no selector'
         else if option is true then make()
-        # Given an array of selectors, make a synapse for each one.
+        # Given an array of selectors, make a link for each one.
         else if _.isArray option then @parsePair(attr, o) for o in option
         # Given a handler class, we instantiate it and use it
         else if isHandlerClass option then make handler: option
@@ -359,7 +376,7 @@ class Parser
         # If `option` is a non-axon function, resolve it with the view as the
         # context and the selector as an argument.
         else if _.isFunction option
-            @parsePair attr, option.call(@view, attr)
+            @parsePair attr, option.call @view, attr
         # If `option` is a selector, make sure to split off any event first
         else if _.isString option then make @normalize option
         # Otherwise try passing the arguments to axon
@@ -377,8 +394,7 @@ class Parser
 #       Each element in the array must be one of these sync types
 #   * String
 #       Interpreted as an attribute name. An appropriate selector will be found
-#       using myelin.selector, and an appropriate axon will be selected using
-#       axon.map and axon.default.
+#       using myelin.selector.
 #   * Axon class or instance
 #       The axon class will be instantiated (if necessary) and will not be given
 #       a selector nor attribute. It had better have one or the other, or it
@@ -386,61 +402,62 @@ class Parser
 #   * Function
 #       Called with the view as it's context. The result is recursively parsed.
 #   * Object
-#       The object key must be the model attribute to be synced to
+#       The object key will be used as the linked model attribute.
 #       The model value may be any one of the @sync object values below
 #
 # ## @sync object values
-#   * false (or any falsy value)
+#   * false (or any falsy value, or a function that resolves to a falsy value)
 #       A key with a false value will be ignored
 #   * true
-#       A key with a true value will look up the axon and selector to use at
-#       event time, using myelin.lookup, myelin.dynamic, and myelin.selector
+#       Create a link using Axon.selector to determine the selector
 #   * Array
-#       {key: [val1, val2]} is identical to {key: val1, key: val2}
+#       {key: [val1, val2]} creates the links `key: val1` and `key: val2`
 #   * String
 #       String values represent an object selector. They can optionally be
 #       preceded with any event in myelin.events (the jQuery event list by
-#       default) to override Axon.event.
-#   * Axon class
-#       The given axon class will be instantiated and used to handle events.
-#   * Axon instance
-#       The given axon will be used to handle events.
+#       default). Such an event will override handler.domEvent.
+#   * Handler class or instance
+#       Create a link with the given handler, using Axon.selector to determine
+#       the selector
 #   * Function
 #       Will be resolved with the view as the context and the attribute as an
-#       argument, then recursively re-parsed.
+#       argument. The result is recursively parsed.
 class View extends Backbone.View
     constructor: (options) ->
         if options.model then @model = options.model
         super
-        @axons = (new Parser).parse(@sync).axons
         @link()
 
     link: (options) =>
+        @axons = (new Parser).parse(@sync).axons
         @model = options?.model or @model
         @el = options?.el or @el
         for axon in @axons
             if @el then axon.assignScope(@el)
             if @model then axon.assignModel(@model)
-            if @el or @model then axon.push()
+            axon.push()
 
-# Expose myelin.View as Backbone.SyncView for simplicity.
-myelin.View = Backbone.SyncView = View
-
-# A list used to intelligently match axons to elements.
-# Each element in myelin.map should be a [selector, axon] two-tuple.
-# If an element matches `selector` (using .is()) then `axon` will be used for
-# that element.  Order matters; the first match is used.
-# Override myelin.map to change the default axon matching.
-myelin.map = [
-    ['a', Link]
+# A list used to intelligently match handlers to elements.
+# Each element in myelin.handlerMap should be a [selector, handler] two-tuple.
+# If an element matches `selector` (using .is()) then `handler` will be used for
+# that element. Order matters; the first match is used.
+myelin.handlerMap = [
     ['input:submit,button:submit', Submit]
     ['button,input:button', Button]
     ['input:checkbox', Checkbox]
     ['input:radio', Radio]
     # Uncomment to enable the Password axon
     # ['input:password', Password]
-    ['select,input,textarea', Input]
+    ['textarea', ImmediateInput]
+    ['select,input', Input]
 ]
+
+# The default handler to be used when no suitable handler can be found.
+myelin.defaultHandler = Handler
+
+# Expose the handlers
+handlers = {Handler, Input, Button, Submit, Checkbox, Radio, Password}
+_.extend myelin, handlers
 
 # Expose the Axon class
 myelin.Axon = Axon
@@ -449,9 +466,5 @@ myelin.Axon = Axon
 # want the default behavior to be changed, override myelin.axon as well.
 myelin.axon = Axon
 
-# The default handler to be used when no suitable handler can be found.
-myelin.handler = Handler
-
-# Expose the handlers
-handlers = {Handler, Link, Input, Button, Submit, Checkbox, Radio, Password}
-_.extend myelin, handlers
+# Expose myelin.View
+myelin.View = View
