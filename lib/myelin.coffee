@@ -138,22 +138,14 @@ isHandlerClass = (fn) ->
 
 
 # The Axon class preforms the binding between the element and the model.
-# If `selector` is absent it is inferred from `attribute` during instantiation.
-# If `attribute` is absent it is inferred from `selector` at event time.
-# If `handler` is absent it is inferred from `myelin.handlerMap` at event time.
 class Axon
     # Axons take four options in the constructor:
-    #   * __selector__: the selector for the element being bound
-    #   * __attribute__: the attribute on the model to be synced
-    #   * __handler__: the handler class to handle the binding
-    #   * __event__: Overrides handler.domEvent if given
+    # __selector__, __attribute__, __handler__, and __event__.
     constructor: (options={}) ->
-        # if attribute is not given, the attribute function will be used to
-        # determined at event time from the elements matched by `selector`.
+        # `attribute` is inferred from `selector` at event time if absent
         if options.attribute then @attribute = options.attribute
 
-        # If selector is not given, then the attribute will be used immediately
-        # to determine the selector.
+        # `selector` is inferred immediately from `attribute` if absent
         if options.selector then @selector = options.selector
         else @selector = @selector @attribute
 
@@ -161,23 +153,23 @@ class Axon
         # Inside of an axon, a false selector means the same thing.
         if @selector is 'this' then @selector = false
 
-        # Instantiate handler classes (if necessary) and override dom events
-        # (if necessary).
-        if options.handler instanceof Handler
-            @handler = options.handler
-            if options.event? then @handler.domEvent = options.event
-        else if options.handler and options.event?
-            @handler = new options.handler event: options.event
-        else if options.handler
-            @handler = new options.handler
-        # If only an event is given, save it for later instantiation
+        # `handler` is inferred from `myelin.handlerMap` at event time if absent.
+        # If `handler` is a class, we instantiate it immediately.
+        if options.handler instanceof Handler then @handler = options.handler
+        else @handler = new options.handler
+
+        # We override the handler's domEvent if asked nicely.
+        if options.handler and options.event?
+            @handler.domEvent = options.event
+        # If only an event is given we save it for when we dynamically choose
+        # a handler.
         else if options.event? then @event = options.event
 
         @scope = @model = null
 
-    # selector works like a classmethod: it will create a selector from an
-    # attribute at instantiation, but `selector` will always be a string
-    # (not a function) on instantiated objects.
+    # This selector function will never be present on an instantiated Axon.
+    # If `selector` is ommited when declaring an Axon, this function will be
+    # called immediately to determine the correct selector.
     selector: (attribute) -> "[name=#{attribute}]"
 
     # Fallback model attribute. By default, uses the html 'name' attribute.
