@@ -40,7 +40,7 @@ reduced to
 ## Quickly now
 
 If you're the impatient type, you might want to jump directly to some
-[examples](soares.github.com/myelin), or perhaps the [annotated source](soares.github.com/myelin/docs/myelin.html).
+[examples](http://soares.github.com/myelin), or perhaps the [annotated source](http://soares.github.com/myelin/docs/myelin.html).
 
 # How to Use
 
@@ -295,6 +295,6 @@ axon must be a child of myelin.Axon if you want things to work properly.
 
 # Resources
 
-* [backbone.js](documentcloud.github.com/backbone)
-* [coffeescript](jashkenas.github.com/coffee-script)
-* [underscore.js](documentcloud.github.com/underscore)
+* [backbone.js](http://documentcloud.github.com/backbone)
+* [coffeescript](http://jashkenas.github.com/coffee-script)
+* [underscore.js](http://documentcloud.github.com/underscore)
