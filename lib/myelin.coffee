@@ -40,24 +40,14 @@ myelin.events = [
 
 # A class that handles all interaction between the DOM and the Model.
 #
-# It performs the following four basic actions:
-#   get: given an element, returns the value to be synced for that element
-#   clean: given the result of `get`, cleans it for setting on the model
-#   render: given a model value, render it for display on the element
-#   set: given an element and the result of `render`, set it on the element
+# In the Dom -> Model direction, handlers get data from the DOM and
+# clean it for setting on the model.
 #
-# Handlers also have three attributes that control behavior:
-#   domEvent: the event to listen for on the element (click, change, etc.)
-#       can also be a function that takes the element and returns the event
-#       if falsy, the model will not listen to DOM events
-#   modelEvent: the event to listen for on the model (change:attribute, etc.)
-#       can also be a function that takes the attribute and returns the event
-#       if falsy, the element will not change for model events
-#   preventDefault: if true, prevents the default DOM event from occuring
-#
-# For convenience, the constructor can take an 'event' kwarg in an options dict,
-# which, if present, overrides domEvent.
+# In the Model -> Dom direction, handlers render Model data and set
+# it on DOM elements.
 class Handler
+    # For convenience, the constructor can take an 'event' option which, if
+    # present, overrides domEvent.
     constructor: (options) -> if options?.event? then @domEvent = options.event
 
     # Get the value from the DOM element
@@ -154,50 +144,26 @@ isHandlerClass = (fn) ->
 
 
 # The Axon class preforms the binding between the element and the model.
-#
-# Axons take four parameters in the options object in their constructor:
-#   selector: the selector for the element being bound
-#   attribute: the attribute on the model to be synced
-#   handler: the handler class to handle the binding
-#   event: the DOM event to listen for. Overrides handler.domEvent if given.
-#
-# All arguments are optional, but each Axon _must_ be given either
-# `selector` or `attribute`, because if either is missing it is inferred from
-# the other.
-#
-# If selector is missing, it is inferred from attribute using Axon.selector.
-# By default, this resolves [name=#{attribute}]. Override Axon.selector to
-# change this behavior.
-#
-# If the attribute is missing, it is inferred from the selector at event-time
-# by looking at the elements matched by `selector`. By default, this resolves to
-# $(elements).attr('name'). Override Axon.attribute to change this behavior.
-#
-# If the handler is missing, it is inferred from the elements matched by the
-# selector at event-time. By default, myelin.handlerMap is used to determine
-# which elements match which handlers. You can either modify myelin.handlerMap
-# or override Axon.handler to change this behavior.
-#
-# Event is used as a convenience to override handler.domEvent. If not given then
-# handler.domEvent simply will not be overridden.
-#
-# Note that both handler and attribute are resolved at event-time if they are
-# missing. Therefore, if you are binding to an input that changes its type from
-# checkbox to email in between events, the correct handler will be chosen each
-# time.
+# If `selector` is absent it is inferred from `attribute` during instantiation.
+# If `attribute` is absent it is inferred from `selector` at event time.
+# If `handler` is absent it is inferred from `myelin.handlerMap` at event time.
 class Axon
+    # Axons take four options in the constructor:
+    #   * __selector__: the selector for the element being bound
+    #   * __attribute__: the attribute on the model to be synced
+    #   * __handler__: the handler class to handle the binding
+    #   * __event__: Overrides handler.domEvent if given
     constructor: (options={}) ->
         # if attribute is not given, the attribute function will be used to
-        # dynamically determine the attribute from the elements
+        # determined at event time from the elements matched by `selector`.
         if options.attribute then @attribute = options.attribute
 
-        # If selector is not given, then the attribute _must_ be given, and will
-        # be used immediately with the Axon.selector function to determine the
-        # selector. `selector` will never be a function on an instantiated Axon.
+        # If selector is not given, then the attribute will be used immediately
+        # to determine the selector.
         if options.selector then @selector = options.selector
         else @selector = @selector @attribute
 
-        # Outside of an axon, the 'this' selector means 'link the view's `el`'
+        # Outside of an axon, the _this_ selector means _link the view's `el`_
         # Inside of an axon, a false selector means the same thing.
         if @selector is 'this' then @selector = false
 
@@ -213,7 +179,6 @@ class Axon
         # If only an event is given, save it for later instantiation
         else if options.event? then @event = options.event
 
-        # These are the links that an axon needs before it can be used.
         @scope = @model = null
 
     # selector works like a classmethod: it will create a selector from an
@@ -221,22 +186,27 @@ class Axon
     # (not a function) on instantiated objects.
     selector: (attribute) -> "[name=#{attribute}]"
 
+    # Fallback model attribute. By default, uses the html 'name' attribute.
+    # Called at event time. If the elements change their 'name' attribute
+    # in between events, then the model attribute synced will change to match.
+    # `el` will be jQuery wrapped.
+    attribute: (el) => el.attr 'name'
+
+    # Fallback handler finder. By default, uses myelin.handlerMap, and falls
+    # back to myelin.defaultHandler.
+    # Called at event time. If the elements change their type from, say,
+    # checkbox to radio in between events then the handler will change to match.
+    # `el` will be jQuery wrapped.
+    handler: (el) =>
+        for [selector, handler] in myelin.handlerMap
+            if el.is(selector) then return new handler {@event}
+        return new myelin.defaultHandler {@event}
+
     # Dynamically selects the elements to be worked on. Can't be used until a
     # scope has been assigned.
     el: =>
         throw new Error "Axons can't use elements without scope" unless @scope
         if @selector then $(@selector, @scope) else $(@scope)
-
-    # Fallback model attribute to sync to. By default, uses the html 'name'
-    # attribute. `el` will be jQuery wrapped.
-    attribute: (el) => el.attr 'name'
-
-    # Fallback handler finder. By default, uses myelin.handlerMap, and falls
-    # back to myelin.defaultHandler. `el` will be jQuery wrapped.
-    handler: (el) =>
-        for [selector, handler] in myelin.handlerMap
-            if el.is(selector) then return new handler {@event}
-        return new myelin.defaultHandler {@event}
 
     # True iff. the axon has both elements and a model to work with.
     ready: => return @scope and @model
@@ -387,41 +357,8 @@ class Parser
 
 
 # The myelin view. Makes axons based on the `sync` field in order to sync
-# between the DOM and models. `sync` can be a number of types
-#
-# sync types:
-#   * Array
-#       Each element in the array must be one of these sync types
-#   * String
-#       Interpreted as an attribute name. An appropriate selector will be found
-#       using myelin.selector.
-#   * Axon class or instance
-#       The axon class will be instantiated (if necessary) and will not be given
-#       a selector nor attribute. It had better have one or the other, or it
-#       will be quite difficult for the axon to figure out what to watch.
-#   * Function
-#       Called with the view as it's context. The result is recursively parsed.
-#   * Object
-#       The object key will be used as the linked model attribute.
-#       The model value may be any one of the @sync object values below
-#
-# sync object values
-#   * false (or any falsy value, or a function that resolves to a falsy value)
-#       A key with a false value will be ignored
-#   * true
-#       Create a link using Axon.selector to determine the selector
-#   * Array
-#       {key: [val1, val2]} creates the links `key: val1` and `key: val2`
-#   * String
-#       String values represent an object selector. They can optionally be
-#       preceded with any event in myelin.events (the jQuery event list by
-#       default). Such an event will override handler.domEvent.
-#   * Handler class or instance
-#       Create a link with the given handler, using Axon.selector to determine
-#       the selector
-#   * Function
-#       Will be resolved with the view as the context and the attribute as an
-#       argument. The result is recursively parsed.
+# between the DOM and models. `sync` can be a number of types. See README.md
+# for more details.
 class View extends Backbone.View
     constructor: (options) ->
         if options.model then @model = options.model
@@ -446,8 +383,6 @@ myelin.handlerMap = [
     ['button,input:button', Button]
     ['input:checkbox', Checkbox]
     ['input:radio', Radio]
-    # Uncomment to enable the Password axon
-    # ['input:password', Password]
     ['textarea', ImmediateInput]
     ['select,input', Input]
 ]
