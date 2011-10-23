@@ -386,10 +386,10 @@ class Parser
         return this
 
 
-# The myelin view. Makes axons based on the @sync field in order to sync
-# between the DOM and models. @sync can be a number of types
+# The myelin view. Makes axons based on the `sync` field in order to sync
+# between the DOM and models. `sync` can be a number of types
 #
-# ## @sync types:
+# sync types:
 #   * Array
 #       Each element in the array must be one of these sync types
 #   * String
@@ -405,7 +405,7 @@ class Parser
 #       The object key will be used as the linked model attribute.
 #       The model value may be any one of the @sync object values below
 #
-# ## @sync object values
+# sync object values
 #   * false (or any falsy value, or a function that resolves to a falsy value)
 #       A key with a false value will be ignored
 #   * true
