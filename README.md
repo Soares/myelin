@@ -40,7 +40,7 @@ reduced to
 ## Quickly now
 
 If you're the impatient type, you might want to jump directly to some
-[[examples]], or perhaps the [[annotated source]].
+[examples](soares.github.com/myelin), or perhaps the [annotated source](soares.github.com/myelin/docs/myelin.html).
 
 # How to Use
 
@@ -248,7 +248,7 @@ which, in turn, is the same as
 
 assuming you didn't override the fallback selector function.
 
-You can also provide [[Axon]] instances directly, though that's only recommended
+You can also provide Axon instances directly, though that's only recommended
 for advanced users.
 
 # Under the Hood
@@ -260,8 +260,7 @@ four parameters in an object in the constructor. They are:
     * handler
     * event
 
-`event`, if given, overrides handler.domEvent. See the [[annotated source]] for
-more details.
+`event`, if given, overrides handler.domEvent.
 
 # Configuration
 
@@ -296,6 +295,6 @@ axon must be a child of myelin.Axon if you want things to work properly.
 
 # Resources
 
-* [[backbone.js]]
-* [[coffeescript]]
-* [[underscore.js]]
+* [backbone.js](documentcloud.github.com/backbone)
+* [coffeescript](jashkenas.github.com/coffee-script)
+* [underscore.js](documentcloud.github.com/underscore)
