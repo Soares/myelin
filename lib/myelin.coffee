@@ -39,12 +39,6 @@ myelin.events = [
 ]
 
 # A class that handles all interaction between the DOM and the Model.
-#
-# In the Dom -> Model direction, handlers get data from the DOM and
-# clean it for setting on the model.
-#
-# In the Model -> Dom direction, handlers render Model data and set
-# it on DOM elements.
 class Handler
     # For convenience, the constructor can take an 'event' option which, if
     # present, overrides domEvent.
