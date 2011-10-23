@@ -201,7 +201,7 @@ class Axon
     # being synced to. For example, the model `attribute` may be a string or a
     # function that only resolves when we know the elements.
     lazy: (attr) =>
-        if _.isFunction @[attr] then @[attr](@el()) else @[attr]
+        if _.isFunction this[attr] then this[attr](@el()) else this[attr]
 
     # Assign a scope from which to select elements. This should be called with
     # a view's `el`. If the synapse already had a scope (i.e. if the view is
