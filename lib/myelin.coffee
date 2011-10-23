@@ -154,12 +154,14 @@ class Axon
         if @selector is 'this' then @selector = false
 
         # `handler` is inferred from `myelin.handlerMap` at event time if absent.
-        # If `handler` is a class, we instantiate it immediately.
         if options.handler instanceof Handler then @handler = options.handler
-        else @handler = new options.handler
+        # If `handler` is a class, we instantiate it immediately.
+        else if isHandlerClass options.handler then @handler = new options.handler
+        # If it's not a handler or a handler class, assume it's a handler function
+        else if options.handler then @handler = options.handler
 
         # We override the handler's domEvent if asked nicely.
-        if options.handler and options.event?
+        if options.handler instanceof Handler and options.event?
             @handler.domEvent = options.event
         # If only an event is given we save it for when we dynamically choose
         # a handler.
@@ -200,8 +202,12 @@ class Axon
     # A function to lazily get data that may or may not depend upon the elements
     # being synced to. For example, the model `attribute` may be a string or a
     # function that only resolves when we know the elements.
-    lazy: (attr) =>
-        if _.isFunction this[attr] then this[attr](@el()) else this[attr]
+    # All attributes that are found to be functions will be resolved with @el()
+    # as their first parameter, and any additional arguments to `lazy` as
+    # additional parameters.
+    lazy: (attr, args...) =>
+        if _.isFunction this[attr] then this[attr](@el(), args...)
+        else this[attr]
 
     # Assign a scope from which to select elements. This should be called with
     # a view's `el`. If the synapse already had a scope (i.e. if the view is
@@ -226,22 +232,22 @@ class Axon
     # not push to the document.
     push: =>
         return unless @ready() and @modelEvent()
-        value = @model.get @lazy('attribute')
-        handler = @lazy('handler')
+        value = @model.get @lazy 'attribute'
+        handler = @lazy 'handler', @event
         handler.set @el(), handler.render value
 
     # Gets the domEvent from the handler and resolves it if necessary
     # handler.domEvent is either a value or a function that takes the elements
     # being linked.
     domEvent: =>
-        event = @lazy('handler').domEvent
+        event = @lazy('handler', @event).domEvent
         if _.isFunction event then event @el() else event
 
     # Gets the modelEvent from the handler and resolves it if necessary
     # handler.modelEvent is either a value or a function that takes the
     # attribute being linked.
     modelEvent: =>
-        event = @lazy('handler').modelEvent
+        event = @lazy('handler', @event).modelEvent
         if _.isFunction event then event @lazy('attribute') else event
 
     # Sets all the DOM-side events
@@ -267,7 +273,7 @@ class Axon
     domChange: (e) =>
         return unless @model
         el = $ e.target
-        handler = @lazy 'handler'
+        handler = @lazy 'handler', @event
         value = handler.clean handler.get el
         data = {}
         data[@lazy 'attribute'] = value
@@ -277,7 +283,7 @@ class Axon
     # Called when the model changes. Renders the data and sets it on the DOM.
     modelChange: (model, value) =>
         return unless @scope
-        handler = @lazy 'handler'
+        handler = @lazy 'handler', @event
         handler.set @el(), handler.render value
 
 
