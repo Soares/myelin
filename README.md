@@ -28,8 +28,8 @@ field will update the "user" attribute on the model, and any change to the
 
 __Quick Tip__
 
-The {attr: [name=attr]} sync pattern is so common that you can use the shortcut
-{attr: true}. It means the same thing. So, for example, the above model could be
+The `{attr: [name=attr]}` sync pattern is so common that you can use the shortcut
+`{attr: true}`. It means the same thing. So, for example, the above model could be
 reduced to
 
     class MyView extends myelin.View
@@ -41,11 +41,6 @@ reduced to
 
 If you're the impatient type, you might want to jump directly to some
 [[examples]], or perhaps the [[annotated source]].
-
-## Quickly now
-
-If you're the impatient type, you might want to jump directly to some
-[examples], or perhaps the [annotated source]. (links forthcoming)
 
 # How to Use
 
@@ -247,6 +242,12 @@ is identical to
 
     sync: {first_name: true, last_name: true}
 
+which, in turn, is the same as
+
+    sync: {first_name: "[name=first_name]", last_name: "[name=last_name]"}
+
+assuming you didn't override the fallback selector function.
+
 You can also provide [[Axon]] instances directly, though that's only recommended
 for advanced users.
 
@@ -295,6 +296,6 @@ axon must be a child of myelin.Axon if you want things to work properly.
 
 # Resources
 
-[[backbone.js]]
-[[coffeescript]]
-[[underscore.js]]
+* [[backbone.js]]
+* [[coffeescript]]
+* [[underscore.js]]
