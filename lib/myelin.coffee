@@ -113,17 +113,20 @@ class Radio extends Input
         el.removeAttr 'checked'
         el.filter("[value=#{value}]").attr 'checked', 'checked'
 
-# An Input handler for password fields. The user-entered password will never get
-# sent to the model, a bcrypt-encrypted hash will be sent instead. This helps
-# developers remember to never send unencrypted passwords across the line, and
-# is absolutely essential with tools like spine that auto-sync model data with
-# the server.
-# This handler isn't used by default, as it will alter the length of the
-# password that displays on the input field. This can be unexpected, especially
-# when there is a 'password confirmation' field.
+# An Input handler for password fields.
+# Currently it just logs a warning and then bcrypts your password if it can.
+# You really shouldn't store passwords in plain text ever, so please think
+# carefully about how you're going to handle passwords before syncing them.
 class Password extends Input
     clean: (value) ->
-        bcrypt = require 'bcrypt'
+        console.log 'WARNING: Auto-syncing password.'
+        bcrypt = root.bcrypt
+        if not root.bcrypt
+            try
+                bcrypt = require 'bcrypt'
+            catch err
+                console.log 'WARNING: failed to hash password.'
+                return value
         salt = bcrypt.gen_salt_sync
         bcrypt.encrypt_sync value, salt
 
@@ -373,6 +376,7 @@ class View extends Backbone.View
 myelin.handlerMap = [
     ['input:submit,button:submit', Submit]
     ['button,input:button', Button]
+    ['input:password', Password]
     ['input:checkbox', Checkbox]
     ['input:radio', Radio]
     ['textarea', ImmediateInput]

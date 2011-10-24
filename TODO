@@ -1,2 +1,0 @@
-Remove the bcrypt dependency. Put in warnings for passwords,
-use bcrypt only if provided.

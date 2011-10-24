@@ -142,6 +142,19 @@ event is fired. Used by default for input and select elements.
 An Input that syncs on "keyup" instead of "change". Used by default for
 textareas.
 
+### Password
+
+A handler that cleans passwords. The handler will salt and hash the password
+with the bcrypt module, if bcrypt is available. This is disconcerting to the
+user, as it causes the password to appear to change length, but the alternative
+is storing plaintext passwords on your models. This is fine, but please don't
+store plaintext passwords anywhere permanent.
+
+You should think carefully about how you store your passwords, and override
+myelin.Password to reflect your usage scenarios.
+
+__myelin.Password is not intended for production use.__
+
 ### Button
 
 Like Input, but `domEvent` is "click" and `modelEvent` is `false`. Buttons, by
@@ -162,14 +175,6 @@ An Input handler that handles selecting the correct radio element. The selector
 should match a whole set of radio buttons. `get` will return the value of the
 checked button, and `set` will ensure that only the button with the matching
 value is checked.
-
-### Password
-
-An Input handler that encrypts its data before setting it on the model. Useful
-if your model auto-syncs with a server. Not enabled by default, because the
-syncing causes the length of the password to change, which can be disconcerting.
-You can enable it if you like, but you probably shouldn't be syncing passwords
-with models automatically.
 
 ## Specifying Links
 

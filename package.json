@@ -8,10 +8,10 @@
         "backbone": "0.x",
         "underscore": "1.x",
         "coffee-script": "1.x",
-        "bcrypt": "0.x",
         "browserify": "1.x"
     },
     "devDependencies": {
+        "bcrypt": "0.x",
         "vows": "0.5.x",
         "jsdom": "0.2.x"
     },
