@@ -2,56 +2,79 @@
 <html>
     <head>
         <title>Myelin examples</title>
+        <link rel="stylesheet" type="text/css" href="vendor/bootstrap.css">
         <link rel="stylesheet/less" type="text/css" href="less/style.less">
     </head>
     <body>
+        <div class="topbar" data-scrollspy="scrollspy">
+            <div class="fill">
+                <div class="container">
+                    <h3><a href="#">Myelin</a></h3>
+                    <ul>
+                        <li><a href="#overview">Overview</a></li>
+                        <li><a href="#examples">Examples</a></li>
+                        <li><a href="#api">API</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
-        <p>Welcome to myelin!</p>
-        <p>This page is still under construction.</p>
-        <p>While you're waiting, <a href="http://github.com/Soares/myelin">github repo</a> has some good docs.</p>
-        <p>You also may want to check out the <a href="docs/myelin.html">annotated source</a>.</p>
-        <p>If you're feeling bold, here are some unexplained examples. Play around!</p>
+        <section id="overview">
+            <div class="page-header">
+                <h1>Myelin.js</h1>
+            </div>
+        </section>
 
-        <!-- test type-switching -->
-        <!-- test model-switching -->
-        <form id="example">
-            <div>
-                <input name="text">
-                <span class="text"></span>
-            </div>
-            <div>
-                <input name="checkbox" type="checkbox">
-                <span class="checkbox"></span>
-            </div>
-            <div>
-                <input name="radio" type="radio" value="one">
-                <input name="radio" type="radio" value="two" checked>
-                <input name="radio" type="radio" value="three">
-                <span class="radio"></span>
-            </div>
-            <div>
-                <button name="button" type="button">I am a button</button>
-                <input name="button" value="CLICKY" type="button">
-                <span class="button"></span>
-            </div>
-            <div>
-                <input name="submit" type="submit" value="normally I submit things">
-                <span class="submit"></span>
-            </div>
-            <div>
-                <button name="fake" type="button">I'm fake.</button>
-            </div>
-            <div>
-                <input name="immediate">
-                <span class="immediate"></span>
-            </div>
+        <div class="container">
 
-        </form>
-        <input id="example2" name="ex2">
+            <p>Welcome to myelin!</p>
+            <p>This page is still under construction.</p>
+            <p>While you're waiting, <a href="http://github.com/Soares/myelin">github repo</a> has some good docs.</p>
+            <p>You also may want to check out the <a href="docs/myelin.html">annotated source</a>.</p>
+            <p>If you're feeling bold, here are some unexplained examples. Play around!</p>
+
+            <!-- test type-switching -->
+            <!-- test model-switching -->
+            <form id="example">
+                <div>
+                    <input name="text">
+                    <span class="text"></span>
+                </div>
+                <div>
+                    <input name="checkbox" type="checkbox">
+                    <span class="checkbox"></span>
+                </div>
+                <div>
+                    <input name="radio" type="radio" value="one">
+                    <input name="radio" type="radio" value="two" checked>
+                    <input name="radio" type="radio" value="three">
+                    <span class="radio"></span>
+                </div>
+                <div>
+                    <button name="button" type="button">I am a button</button>
+                    <input name="button" value="CLICKY" type="button">
+                    <span class="button"></span>
+                </div>
+                <div>
+                    <input name="submit" type="submit" value="normally I submit things">
+                    <span class="submit"></span>
+                </div>
+                <div>
+                    <button name="fake" type="button">I'm fake.</button>
+                </div>
+                <div>
+                    <input name="immediate">
+                    <span class="immediate"></span>
+                </div>
+
+            </form>
+            <input id="example2" name="ex2">
+        </div>
 
         <script type="text/javascript" src="vendor/jquery.js"></script>
         <script type="text/javascript" src="vendor/underscore.js"></script>
         <script type="text/javascript" src="vendor/backbone.js"></script>
+        <script type="text/javascript" src="vendor/bootstrap-scrollspy.js"></script>
         <script type="text/javascript" src="vendor/coffee-script.js"></script>
         <script type="text/coffeescript" src="lib/myelin.coffee"></script>
         <script type="text/coffeescript" src="test/setup.coffee"></script>
