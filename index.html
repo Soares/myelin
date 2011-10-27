@@ -6,78 +6,104 @@
         <link rel="stylesheet/less" type="text/css" href="less/style.less">
     </head>
     <body>
+        <!-- Topbar -->
         <div class="topbar" data-scrollspy="scrollspy">
             <div class="fill">
                 <div class="container">
                     <h3><a href="#">Myelin</a></h3>
                     <ul>
-                        <li><a href="#overview">Overview</a></li>
-                        <li><a href="#examples">Examples</a></li>
-                        <li><a href="#api">API</a></li>
+                        <li><a href="#intro">Introduction</a></li>
+                        <li><a href="#basics">The Basics</a></li>
+                        <li><a href="#behavior">Behavior</a></li>
+                        <li><a href="#api">Api</a></li>
+                        <li><a href="#resources">Resources</a></li>
                     </ul>
                 </div>
             </div>
         </div>
-
-        <section id="overview">
-            <div class="page-header">
-                <h1>Myelin.js</h1>
-            </div>
-        </section>
-
-        <div class="container">
-
-            <p>Welcome to myelin!</p>
-            <p>This page is still under construction.</p>
-            <p>While you're waiting, <a href="http://github.com/Soares/myelin">github repo</a> has some good docs.</p>
-            <p>You also may want to check out the <a href="docs/myelin.html">annotated source</a>.</p>
-            <p>If you're feeling bold, here are some unexplained examples. Play around!</p>
-
-            <!-- test type-switching -->
-            <!-- test model-switching -->
-            <form id="example">
-                <div>
-                    <input name="text">
-                    <span class="text"></span>
-                </div>
-                <div>
-                    <input name="checkbox" type="checkbox">
-                    <span class="checkbox"></span>
-                </div>
-                <div>
-                    <input name="radio" type="radio" value="one">
-                    <input name="radio" type="radio" value="two" checked>
-                    <input name="radio" type="radio" value="three">
-                    <span class="radio"></span>
-                </div>
-                <div>
-                    <button name="button" type="button">I am a button</button>
-                    <input name="button" value="CLICKY" type="button">
-                    <span class="button"></span>
-                </div>
-                <div>
-                    <input name="submit" type="submit" value="normally I submit things">
-                    <span class="submit"></span>
-                </div>
-                <div>
-                    <button name="fake" type="button">I'm fake.</button>
-                </div>
-                <div>
-                    <input name="immediate">
-                    <span class="immediate"></span>
-                </div>
-
-            </form>
-            <input id="example2" name="ex2">
+        <div id="colors">
+            <div class="red"></div>
+            <div class="amber"></div>
+            <div class="green"></div>
+            <div class="cyan"></div>
+            <div class="blue"></div>
+            <div class="magenta"></div>
         </div>
 
+        <!-- Masthead (can you tell I'm using bootstrap yet?) -->
+        <header class="masthead" id="overview">
+            <div class="container">
+                <h1>Myelin <small>links Backbone.js models to document objects through Views using Handlers.</small></h1>
+            </div>
+        </header>
+
+        <div class="container">
+        <script type="text/javascript" src="vendor/coffee-script.js"></script>
         <script type="text/javascript" src="vendor/jquery.js"></script>
         <script type="text/javascript" src="vendor/underscore.js"></script>
         <script type="text/javascript" src="vendor/backbone.js"></script>
-        <script type="text/javascript" src="vendor/bootstrap-scrollspy.js"></script>
-        <script type="text/javascript" src="vendor/coffee-script.js"></script>
         <script type="text/coffeescript" src="lib/myelin.coffee"></script>
-        <script type="text/coffeescript" src="test/setup.coffee"></script>
+
+        <!-- Introduction -->
+        <section id="intro">
+            <div class="page-header">
+                <h1>Introduction <small>a quick example to get you started</small></h1>
+            </div>
+<div class="example row">
+    <div class="span4">
+        <input class="red" placeholder="start typing...">
+        <small class="red" placeholder="start typing...">
+            The red input syncs on <code>keyup</code> events.
+        </small>
+
+        <input class="blue">
+        <small class="blue">
+            The blue input syncs on <code>change</code> events.
+        </small>
+    </div>
+    <div class="span8">
+        <pre>
+# This is a handler, used to specify complex behavior.
+# This one uppercases incoming model data, and pushes
+# the uppercased data on click events.
+# We'll be using it for the cyan span.
+class UpperHandler extends myelin.Handler
+  render: (str) -&gt; str.toUpperCase()
+  domEvent: 'click'
+
+# A myelin.View is a Backbone.View with a 'sync' field.
+# The 'sync' specifies how we link documents to models.
+class IntroView extends myelin.View
+  sync:
+    field: [            # sync to the 'field' attribute
+      'keyup input.red' # use keyup for the red input
+      'input.blue'      # use the default input handler
+      'span.amber'      # use the default span handler
+      {handler: UpperHandler, selector: 'span.cyan'}
+    ]
+
+# The view must have both 'el' and 'model'.
+new IntroView el: '#intro', model: new Backbone.Model
+        </pre>
+        <script type="text/coffeescript" src="examples/intro/code.coffee"></script>
+    </div>
+    <div class="span4">
+        <span class="amber"></span>
+        <small class="amber">
+            The amber span syncs on model <code>change</code>.
+        </small>
+        <span class="cyan" style="cursor: pointer"></span>
+        <small class="cyan">
+            The cyan span uppercases data.<br>
+            Click it to push the uppercased data.
+        </small>
+    </div>
+</div>
+<div class="row">
+</div>
+        </section>
+
+        <script type="text/javascript" src="vendor/bootstrap-scrollspy.js"></script>
         <script type="text/javascript" src="vendor/less-1.1.3.min.js"></script>
     </body>
 </html>
