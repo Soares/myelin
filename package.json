@@ -13,7 +13,9 @@
     "devDependencies": {
         "bcrypt": "0.x",
         "vows": "0.5.x",
-        "jsdom": "0.2.x"
+        "jsdom": "0.2.x",
+        "jade": "0.x",
+        "stylus": "0.x"
     },
     "keywords": ["backbone", "synapse", "coffeescript", "relational", "forms",
          "automatic"],

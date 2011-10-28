@@ -1,0 +1,63 @@
+!!! html
+html
+  head
+    meta(charset="utf-8")
+    title Myelin
+    link(type="text/css" rel="stylesheet" href="lib/vendor/bootstrap.css")
+    link(type="text/css" rel="stylesheet" href="lib/pygments.css")
+    link(type="text/css" rel="stylesheet" href="build/index.css")
+  body
+    // Topbar
+    .topbar(data-scrollspy="scrollspy")
+      .fill
+        .container
+          h3: a(href="#") Myelin
+          ul
+            li: a(href="#intro") Introduction
+            li: a(href="#basics") The Basics
+            li: a(href="#behavior") Behavior
+            li: a(href="#api") API
+            li: a(href="#resources") Resources
+        // Pretty color time!
+        #colors
+          .red
+          .amber
+          .green
+          .cyan
+          .blue
+          .magenta
+
+    // Masthead (can you tell I'm using bootstrap yet?)
+    header.jumbotron.masthead#overview
+      .inner
+        .container
+          h1 Myelin 
+            small links Backbone.js models to document objects through Views using Handlers.
+
+    // These scripts must be loaded now in order for example scripts to work properly
+    script(type="text/javascript" src="lib/vendor/coffee-script.js")
+    script(type="text/javascript" src="lib/vendor/jquery.js")
+    script(type="text/javascript" src="lib/vendor/underscore.js")
+    script(type="text/javascript" src="lib/vendor/backbone.js")
+    script(type="text/coffeescript" src="lib/myelin.coffee")
+
+    .container
+      section#intro
+        .page-header
+          h1 Introduction 
+            small a quick example to get you started
+        include build/examples/intro
+
+      section#basics
+        .page-header
+          h1 The Basics 
+            small you'll be linking your elements in no time!
+        include build/examples/trivial
+        include build/examples/keyup
+        include build/examples/reuse
+        include build/examples/delegate
+        include build/examples/changetype
+        // There should be more basic examples. Check your scratch.
+
+    // These scripts can be loaded as late as necessary
+    script(type="text/javascript" src="lib/vendor/bootstrap-scrollspy.js")
