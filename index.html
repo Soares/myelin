@@ -1,0 +1,52 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>Myelin</title><link type="text/css" rel="stylesheet" href="lib/vendor/bootstrap.css"><link type="text/css" rel="stylesheet" href="build/pygments.css"><link type="text/css" rel="stylesheet" href="build/style.css"></head><body><!-- Topbar--><div data-scrollspy="scrollspy" class="topbar"><div class="fill"><div class="container"><h3><a href="#">Myelin</a></h3><ul><li><a href="#intro">Introduction</a></li><li><a href="#basics">The Basics</a></li><li><a href="#behavior">Behavior</a></li><li><a href="#api">API</a></li><li><a href="#resources">Resources</a></li></ul></div><!-- Pretty color time!--><div id="colors"><div class="red"></div><div class="amber"></div><div class="green"></div><div class="cyan"></div><div class="blue"></div><div class="magenta"></div></div></div></div><!-- Masthead (can you tell I'm using bootstrap yet?)--><header id="overview" class="jumbotron masthead"><div class="inner"><div class="container"><h1>Myelin <small>links Backbone.js models to document objects through Views using Handlers.</small></h1></div></div></header><!-- These scripts must be loaded now in order for example scripts to work properly--><script type="text/javascript" src="lib/vendor/coffee-script.js"></script><script type="text/javascript" src="lib/vendor/jquery.js"></script><script type="text/javascript" src="lib/vendor/underscore.js"></script><script type="text/javascript" src="lib/vendor/backbone.js"></script><script type="text/coffeescript" src="lib/myelin.coffee"></script><div class="container"><section id="intro"><div class="page-header"><h1>Introduction <small>a quick example to get you started</small></h1></div><div class="row"><div class="span4 example"><input placeholder="start typing..." class="red"/><small class="red">The red input syncs on
+<code>keyup</code>events.
+</small><input class="blue"/><small class="blue">The blue input syncs on
+<code>change</code>events.
+</small></div><div class="span8"><div class="highlight"><pre><span class="c1"># This is a handler, used to specify complex behavior.</span>
+<span class="c1"># This one uppercases incoming model data, and pushes</span>
+<span class="c1"># the uppercased data on click events.</span>
+<span class="c1"># We&#39;ll be using it for the cyan span.</span>
+<span class="k">class</span> <span class="nx">UpperHandler</span> <span class="k">extends</span> <span class="nx">myelin</span><span class="p">.</span><span class="nx">Handler</span>
+  <span class="nv">render: </span><span class="nf">(str) -&gt;</span> <span class="nx">str</span><span class="o">?</span><span class="p">.</span><span class="nx">toUpperCase</span><span class="p">()</span>
+  <span class="nv">domEvent: </span><span class="s1">&#39;click&#39;</span>
+
+<span class="c1"># A myelin.View is a Backbone.View with a &#39;sync&#39; field.</span>
+<span class="c1"># The &#39;sync&#39; specifies how we link documents to models.</span>
+<span class="k">class</span> <span class="nx">IntroView</span> <span class="k">extends</span> <span class="nx">myelin</span><span class="p">.</span><span class="nx">View</span>
+  <span class="nv">sync:</span>
+    <span class="nv">field: </span><span class="p">[</span>            <span class="c1"># sync to the &#39;field&#39; attribute</span>
+      <span class="s1">&#39;keyup input.red&#39;</span> <span class="c1"># use keyup for the red input</span>
+      <span class="s1">&#39;input.blue&#39;</span>      <span class="c1"># use the default input handler</span>
+      <span class="s1">&#39;span.amber&#39;</span>      <span class="c1"># use the default span handler</span>
+      <span class="p">{</span><span class="nv">handler: </span><span class="nx">UpperHandler</span><span class="p">,</span> <span class="nv">selector: </span><span class="s1">&#39;span.cyan&#39;</span><span class="p">}</span>
+    <span class="p">]</span>
+
+<span class="c1"># The view must have both &#39;el&#39; and &#39;model&#39;.</span>
+<span class="k">new</span> <span class="nx">IntroView</span> <span class="nv">el: </span><span class="s1">&#39;#intro&#39;</span><span class="p">,</span> <span class="nv">model: </span><span class="k">new</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Model</span>
+</pre></div>
+<script type="text/coffeescript"># This is a handler, used to specify complex behavior.
+# This one uppercases incoming model data, and pushes
+# the uppercased data on click events.
+# We'll be using it for the cyan span.
+class UpperHandler extends myelin.Handler
+  render: (str) -> str?.toUpperCase()
+  domEvent: 'click'
+
+# A myelin.View is a Backbone.View with a 'sync' field.
+# The 'sync' specifies how we link documents to models.
+class IntroView extends myelin.View
+  sync:
+    field: [            # sync to the 'field' attribute
+      'keyup input.red' # use keyup for the red input
+      'input.blue'      # use the default input handler
+      'span.amber'      # use the default span handler
+      {handler: UpperHandler, selector: 'span.cyan'}
+    ]
+
+# The view must have both 'el' and 'model'.
+new IntroView el: '#intro', model: new Backbone.Model
+</script></div><div class="span4 example"><span class="amber"></span><small class="amber">The amber span syncs on model
+<code>change</code>.
+</small><span style="cursor:pointer" class="cyan"></span><small class="cyan">The cyan span uppercases data.
+<br/>Click it to push the uppercased data.
+</small></div></div><div class="row text"><!-- include text.html--></div></section><section id="basics"><div class="page-header"><h1>The Basics <small>you'll be linking your elements in no time!</small></h1></div><!-- include examples/trivial.html--><!-- include examples/keyup.html--><!-- include examples/reuse.html--><!-- include examples/delegate.html--><!-- include examples/changetype.html--><!-- There should be more basic examples. Check your scratch.--></section></div><!-- These scripts can be loaded as late as necessary--><script type="text/javascript" src="lib/vendor/bootstrap-scrollspy.js"></script></body></html>
