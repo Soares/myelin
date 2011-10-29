@@ -1,26 +1,34 @@
-EXAMPLES = $(shell ls lib/examples)
+LIB = lib
+BUILD = build
+EXAMPLES = examples
 
-# TODO: Don't rebuild if not necessary.
-page:
-	mkdir -p build/examples
-	pygmentize -S default -f html > build/pygments.css
-	stylus -u nib < lib/style.sty > build/style.css
-	
-	for NAME in $(EXAMPLES) ; do \
-		pygmentize -f html -o lib/examples/$$NAME/code.html lib/examples/$$NAME/code.coffee ;\
-		cp lib/block.jade lib/examples/$$NAME/tmp.jade ;\
-		jade < lib/examples/$$NAME/tmp.jade --path lib/examples/$$NAME/tmp.jade > build/examples/$$NAME.html ;\
-		rm lib/examples/$$NAME/code.html ;\
-		rm lib/examples/$$NAME/tmp.jade ;\
-	done
-	
-	cp lib/index.jade build/
-	jade < build/index.jade --path build/index.jade > index.html
+LEX = $(LIB)/$(EXAMPLES)/
+BEX = $(BUILD)/$(EXAMPLES)/
+
+MODULES = $(addprefix $(BEX),$(shell ls $(LEX)))
+
+all: $(BUILD)/pygments.css $(BUILD)/style.css index.html
+
+build:
+	mkdir -p $(BEX)
+
+$(BUILD)/pygments.css: build
+	pygmentize -S default -f html > $(BUILD)/pygments.css
+
+$(BUILD)/style.css: build lib/style.sty
+	stylus -u nib < lib/style.sty > $(BUILD)/style.css
+
+index.html: $(MODULES) lib/index.jade
+	cp $(LIB)/index.jade $(BUILD)/
+	jade < $(BUILD)/index.jade --path $(BUILD)/index.jade > $@
+
+$(BEX)%: $(LEX)%/left.jade $(LEX)%/right.jade $(LEX)%/code.coffee $(LEX)%/text.md
+	cp -R $(LEX)$(@F) $@
+	pygmentize -f html -o $@/code.html $@/code.coffee
+	markdown < $@/text.md > $@/text.html
+	cp $(LIB)/block.jade $@/tmp.jade
+	jade < $@/tmp.jade --path $@/tmp.jade > $@.html
 
 clean:
 	rm index.html -f
 	rm build -rf
-
-# markdown < lib/examples/$$NAME/text.md > lib/examples/$NAME/text.html
-# ...
-# rm lib/examples/$$NAME/text.html
