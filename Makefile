@@ -1,48 +1,43 @@
 LIB = lib
 BUILD = build
-EXAMPLES = examples
+LIBEX = $(LIB)/examples
+BUILDEX = $(BUILD)/examples
+EXAMPLES = $(addsuffix .html,$(addprefix $(BUILDEX)/,$(shell ls $(LIBEX))))
 
-LEX = $(LIB)/$(EXAMPLES)/
-BEX = $(BUILD)/$(EXAMPLES)/
+all: $(BUILD)/main.css index.html
 
-MODULES = $(addprefix $(BEX),$(shell ls $(LEX)))
-MODTARGETS = $(addsuffix .html,$(MODULES))
-
-all: $(BUILD)/pygments.css $(BUILD)/style.css index.html
-
-build:
-	mkdir -p $(BUILD)
-	for mod in $(MODULES) ; do \
-		mkdir -p $$mod ; \
-	done
-
-$(BUILD)/pygments.css: build
-	pygmentize -S default -f html > $(BUILD)/pygments.css
-
-$(BUILD)/style.css: build lib/style.sty
-	stylus -u nib < lib/style.sty > $(BUILD)/style.css
-
-index.html: $(MODTARGETS) lib/index.jade
-	cp $(LIB)/index.jade $(BUILD)/
-	jade < $(BUILD)/index.jade --path $(BUILD)/index.jade > $@
-
-$(BEX)%.html: $(BEX)%/left.html $(BEX)%/right.html $(BEX)%/code.html $(BEX)%/code.coffee $(BEX)%/text.html
-	cp $(LIB)/block.jade $(<D)
-	jade < $(<D)/block.jade --path $(<D)/block.jade > $@
-
-$(BEX)%/left.html: $(LEX)%/left.jade
+index.html: $(BUILD)/index.jade $(EXAMPLES)
 	jade < $< --path $< > $@
 
-$(BEX)%/right.html: $(LEX)%/right.jade
-	jade < $< --path $< > $@
-
-$(BEX)%/code.html: $(LEX)%/code.coffee
-	pygmentize -f html -o $@ $<
-
-$(BEX)%/code.coffee: $(LEX)%/code.coffee
+$(BUILD)/index.jade: $(LIB)/index.jade
+	mkdir -p $(@D)
 	cp $< $@
 
-$(BEX)%/text.html: $(LEX)%/text.md
+$(BUILD)/main.css: $(LIB)/main.sty
+	mkdir -p $(@D)
+	stylus -u nib < $< > $@
+
+$(BUILDEX)/%.html: $(BUILDEX)/%/example.jade $(BUILDEX)/%/left.html $(BUILDEX)/%/right.html $(BUILDEX)/%/code.html $(BUILDEX)/%/text.html
+	jade < $< --path $< > $@
+
+$(BUILDEX)/%/example.jade: $(LIB)/example.jade
+	mkdir -p $(@D)
+	cp $< $@
+
+$(BUILDEX)/%/left.html: $(LIBEX)/%/left.jade
+	jade < $< --path $< > $@
+
+$(BUILDEX)/%/right.html: $(LIBEX)/%/right.jade
+	jade < $< --path $< > $@
+
+$(BUILDEX)/%/code.html: $(LIBEX)/%/code.coffee
+	pygmentize -f html -o $@ $<
+
+$(BUILDEX)/%/code.coffee: $(LIBEX)/%/code.coffee
+	mkdir -p $(@D)
+	cp $< $@
+
+$(BUILDEX)/%/text.html: $(LIBEX)/%/text.md
 	markdown < $< > $@
 
 clean:
