@@ -6,11 +6,15 @@ LEX = $(LIB)/$(EXAMPLES)/
 BEX = $(BUILD)/$(EXAMPLES)/
 
 MODULES = $(addprefix $(BEX),$(shell ls $(LEX)))
+MODTARGETS = $(addsuffix .html,$(MODULES))
 
 all: $(BUILD)/pygments.css $(BUILD)/style.css index.html
 
 build:
-	mkdir -p $(BEX)
+	mkdir -p $(BUILD)
+	for mod in $(MODULES) ; do \
+		mkdir -p $$mod ; \
+	done
 
 $(BUILD)/pygments.css: build
 	pygmentize -S default -f html > $(BUILD)/pygments.css
@@ -18,17 +22,29 @@ $(BUILD)/pygments.css: build
 $(BUILD)/style.css: build lib/style.sty
 	stylus -u nib < lib/style.sty > $(BUILD)/style.css
 
-index.html: $(MODULES) lib/index.jade
+index.html: $(MODTARGETS) lib/index.jade
 	cp $(LIB)/index.jade $(BUILD)/
 	jade < $(BUILD)/index.jade --path $(BUILD)/index.jade > $@
 
-$(BEX)%: $(LEX)%/left.jade $(LEX)%/right.jade $(LEX)%/code.coffee $(LEX)%/text.md
-	cp -R $(LEX)$(@F) $@
-	pygmentize -f html -o $@/code.html $@/code.coffee
-	markdown < $@/text.md > $@/text.html
-	cp $(LIB)/block.jade $@/tmp.jade
-	jade < $@/tmp.jade --path $@/tmp.jade > $@.html
+$(BEX)%.html: $(BEX)%/left.html $(BEX)%/right.html $(BEX)%/code.html $(BEX)%/code.coffee $(BEX)%/text.html
+	cp $(LIB)/block.jade $(<D)
+	jade < $(<D)/block.jade --path $(<D)/block.jade > $@
+
+$(BEX)%/left.html: $(LEX)%/left.jade
+	jade < $< --path $< > $@
+
+$(BEX)%/right.html: $(LEX)%/right.jade
+	jade < $< --path $< > $@
+
+$(BEX)%/code.html: $(LEX)%/code.coffee
+	pygmentize -f html -o $@ $<
+
+$(BEX)%/code.coffee: $(LEX)%/code.coffee
+	cp $< $@
+
+$(BEX)%/text.html: $(LEX)%/text.md
+	markdown < $< > $@
 
 clean:
 	rm index.html -f
-	rm build -rf
+	rm $(BUILD) -rf
