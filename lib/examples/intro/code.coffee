@@ -1,7 +1,5 @@
 # This is a handler, used to specify complex behavior.
-# This one uppercases incoming model data, and pushes
-# the uppercased data on click events.
-# We'll be using it for the cyan span.
+# We'll be using this one for the cyan span.
 class UpperHandler extends myelin.Handler
   render: (str) -> str?.toUpperCase()
   domEvent: 'click'
@@ -14,7 +12,7 @@ class IntroView extends myelin.View
       'keyup input.red' # use keyup for the red input
       'input.blue'      # use the default input handler
       'span.amber'      # use the default span handler
-      {handler: UpperHandler, selector: 'span.cyan'}
+      {selector: 'span.cyan', handler: UpperHandler}
     ]
 
 # The view must have both 'el' and 'model'.
