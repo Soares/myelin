@@ -2,9 +2,9 @@ LIB = lib
 BUILD = build
 LIBEX = $(LIB)/examples
 BUILDEX = $(BUILD)/examples
-EXAMPLES = $(addsuffix .html,$(addprefix $(BUILDEX)/,$(shell ls $(LIBEX))))
+EXAMPLES = $(addsuffix .html,$(addprefix $(BUILDEX)/,$(shell ls $(LIBEX) | grep -v '.jade')))
 
-all: $(BUILD)/main.css index.html
+all: $(BUILD)/main.css $(BUILD)/pygments.css index.html
 
 index.html: $(BUILD)/index.jade $(EXAMPLES)
 	jade < $< --path $< > $@
@@ -17,10 +17,13 @@ $(BUILD)/main.css: $(LIB)/main.sty
 	mkdir -p $(@D)
 	stylus -u nib < $< > $@
 
-$(BUILDEX)/%.html: $(BUILDEX)/%/example.jade $(BUILDEX)/%/left.html $(BUILDEX)/%/right.html $(BUILDEX)/%/code.html $(BUILDEX)/%/text.html
+$(BUILD)/pygments.css:
+	pygmentize -S default -f html > $@
+
+$(BUILDEX)/%.html: $(BUILDEX)/%/template.jade $(BUILDEX)/%/left.html $(BUILDEX)/%/right.html $(BUILDEX)/%/code.html $(BUILDEX)/%/code.coffee $(BUILDEX)/%/text.html
 	jade < $< --path $< > $@
 
-$(BUILDEX)/%/example.jade: $(LIB)/example.jade
+$(BUILDEX)/%/template.jade: $(LIBEX)/template.jade
 	mkdir -p $(@D)
 	cp $< $@
 
