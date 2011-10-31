@@ -1,3 +1,5 @@
+For a quick example of how myelin works, check [here](http://soares.github.com/myelin).
+
 Myelin automates the linking of your HTML elements to your Backbone Models,
 through your Backbone Views. All you need to do is use myelin.View instead
 of Backbone.View, and declare a 'sync' attribute on your view, like this:
@@ -7,30 +9,30 @@ of Backbone.View, and declare a 'sync' attribute on your view, like this:
             user: 'input[name=user]'
             message: '#message'
 
-Then, if you have HTML like this:
+Then, myelin will link a form like this:
 
     <form id="myForm">
         <input name="user">
         <span id="message"></span>
     </form>
 
-And a model like this:
+to a model like this:
 
     model = new Backbone.Model message: "Hello, world!"
 
-And a view like this:
+using a view like this:
 
     view = new MyView {el: '#myForm', model}
 
-Then the view will link the form to the model. Any changes to the "user" input
-field will update the "user" attribute on the model, and any change to the
-"message" attribute of the model will be reflected in the message span.
+Any changes to the "user" input field will update the "user" attribute on the
+model, and any change to the "message" attribute of the model will be reflected
+in the message span.
 
 __Quick Tip__
 
 The `{attr: [name=attr]}` sync pattern is so common that you can use the shortcut
-`{attr: true}`. It means the same thing. So, for example, the above model could be
-reduced to
+`{attr: true}`. It means the same thing. So, for example, the above model could
+be reduced to
 
     class MyView extends myelin.View
         sync:

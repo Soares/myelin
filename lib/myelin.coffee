@@ -92,7 +92,7 @@ class Button extends Input
 class Submit extends Button
     preventDefault: true
 
-# An Input button for checkboxes. It `get`s a boolean value and `set`s the
+# An Input handler for checkboxes. It `get`s a boolean value and `set`s the
 # checkbox's "checked" attribute.
 class Checkbox extends Input
     get: (el) -> el.is ':checked'
