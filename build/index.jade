@@ -1,0 +1,111 @@
+!!! html
+html
+	head
+		meta(charset="utf-8")
+		title Myelin
+		link(type="text/css", rel="stylesheet", href="lib/vendor/bootstrap.css")
+		link(type="text/css", rel="stylesheet", href="build/pygments.css")
+		link(type="text/css", rel="stylesheet", href="build/main.css")
+	body
+		// Topbar
+		.topbar(data-scrollspy="scrollspy")
+			.fill
+				.container
+					h3: a(href="#") Myelin
+					ul
+						li: a(href="#intro") Introduction
+						li: a(href="#basics") The Basics
+						li: a(href="#behavior") Behavior
+						li: a(href="http://github.com/Soares/myelin") API
+						li: a(href="#resources") Resources
+				// Pretty color time!
+				#colors
+					.red
+					.amber
+					.green
+					.cyan
+					.blue
+					.magenta
+
+		// Masthead (can you tell I'm using bootstrap yet?)
+		header.jumbotron.masthead#overview
+			.inner
+				.container
+					h1 Myelin 
+						small links Backbone.js models to document objects through Views using Handlers.
+
+		// These scripts must be loaded now in order for example scripts to work properly
+		script(type="text/javascript", src="lib/vendor/coffee-script.js")
+		script(type="text/javascript", src="lib/vendor/jquery.js")
+		script(type="text/javascript", src="lib/vendor/underscore.js")
+		script(type="text/javascript", src="lib/vendor/backbone.js")
+		script(type="text/coffeescript", src="lib/myelin.coffee")
+
+		.container
+			section#intro
+				.page-header
+					h1 Show, don't tell 
+						small a quick example to get you started
+				include examples/intro.html
+
+			section#basics
+				.page-header
+					h1 The Basics 
+						small you'll be linking your elements in no time!
+				.row.text
+					.offset1.span14
+						:markdown
+							Myelin works just as you'd expect. Let's break down the example above a bit.
+
+							`myelin.View` is a subclass of `Backbone.View`. It has a `model` attribute which
+							it synchronizes data to. It uses a `sync` object to link document elements to
+							this model.
+
+							The `sync` element is usually of the form `{attribute: selector}` or, as in
+							the example above, `{attribute: [selector]}`. Myelin is pretty smart about
+							detecting what type of behavior you want from the selector alone, but you
+							can override all of myelin's guesses pretty easily.
+
+							One of the simplest overrides is changing the event that triggers synchronization.
+							Just put an event in front of your selector and you're done. In the above example,
+							**Green Input** uses the myelin default Handler, which synchronizes on the `change`
+							event. **Red Input** uses the keyup event instead.
+
+							If you need even more flexibility, you can define your own handler and override the
+							`get`, `set`, `clean`, and `render` functions, as **Blue Button** does above.
+
+			section#behavior
+				.page-header
+					h1 Behavior 
+						small chalk full of sensible defaults
+				.row.text
+					.offset1.span14
+						:markdown
+							Myelin is a very intelligent linker. All links are defined within the view's `el`. Links are
+							also delegated, so any dynamically added elements will automatically be synced.
+							You can switch out the model or the el at any time, but you have to call `view.link()` to
+							update all of the links.
+
+							If you don't provide your own handler, Myelin dynamically chooses one for you. Myelin handles
+							checkboxes, radio buttons, submit buttons, and so on with some sensible defaults. Myelin also
+							chooses handlers dynamically _at event time_. That means that you could say
+							`sync: {field: '.username'}`, and the Input handler will be used for `input.username` while
+							the Span handler will be used for `span.username`.
+
+			section#resources
+				.page-header
+					h1 Resources 
+						small the shoulders of giants and what-not
+				.row.text
+					.offset1.span14
+						:markdown
+							Myelin is built with the lovable [coffeescript](http://jashkenas.github.com/coffee-script)
+							and makes use of the incredible [underscore.js](http://documentcloud.github.com/underscore).
+							Obviously, myelin couldn't exist withuot [backbone.js](http://documentcloud.github.com/backbone).
+							If you want to learn more, the [documentation](http://github.com/Soares/myelin)
+							and [annotated source](docs/myelin.html) are waiting.
+
+							Have fun, log bugs, send feedback!
+
+		// These scripts can be loaded as late as necessary
+		script(type="text/javascript", src="lib/vendor/bootstrap-scrollspy.js")
