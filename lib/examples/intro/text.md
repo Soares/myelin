@@ -6,4 +6,4 @@ If you're interested, check out the
 If you're feeling bold, or if you want to pick up some advanced tips and tricks, check out the
 [annotated source](docs/myelin.html).
 
-Otherwise, read on! More examples follow.
+If you're not convinced yet, read on!

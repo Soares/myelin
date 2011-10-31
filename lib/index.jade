@@ -16,7 +16,7 @@ html
 						li: a(href="#intro") Introduction
 						li: a(href="#basics") The Basics
 						li: a(href="#behavior") Behavior
-						li: a(href="#api") API
+						li: a(href="http://github.com/Soares/myelin") API
 						li: a(href="#resources") Resources
 				// Pretty color time!
 				#colors
@@ -44,7 +44,7 @@ html
 		.container
 			section#intro
 				.page-header
-					h1 Introduction 
+					h1 Show, don't tell 
 						small a quick example to get you started
 				include examples/intro.html
 
@@ -52,12 +52,44 @@ html
 				.page-header
 					h1 The Basics 
 						small you'll be linking your elements in no time!
-				// include examples/trivial.html
-				// include examples/keyup.html
-				// include examples/reuse.html
-				// include examples/delegate.html
-				// include examples/changetype.html
-				// There should be more basic examples. Check your scratch.
+				.row.text
+					.offset1.span14
+						:markdown
+							Myelin works just as you'd expect. Let's break down the example above a bit.
+
+							`myelin.View` is a subclass of `Backbone.View`. It has a `model` attribute which
+							it synchronizes data to. It uses a `sync` object to link document elements to
+							this model.
+
+							The `sync` element is usually of the form `{attribute: selector}` or, as in
+							the example above, `{attribute: [selector]}`. Myelin is pretty smart about
+							detecting what type of behavior you want from the selector alone, but you
+							can override all of myelin's guesses pretty easily.
+
+							One of the simplest overrides is changing the event that triggers synchronization.
+							Just put an event in front of your selector and you're done. In the above example,
+							**Green Input** uses the myelin default Handler, which synchronizes on the `change`
+							event. **Red Input** uses the keyup event instead.
+
+							If you need even more flexibility, you can define your own handler and override the
+							`get`, `set`, `clean`, and `render` functions, as **Blue Button** does above.
+
+			section#behavior
+				.page-header
+					h2 Behavior 
+						small chalk full of sensible defaults
+				.row.text
+					.offset1.span14
+            :markdown
+              Myelin is a very intelligent linker. It delegates events instead of binding them, which means
+              that any dynamically added elements will automatically be synced. You can switch out the model
+              (or even the sync attribute)
+						ul
+							li Myelin delegates events. Dynamcially added document elements will automatically be synched.
+							li Behavior is intelligently determined.
+								ul
+									li Checkboxes, radio buttons, select elements and more work out of the box
+                  li 
 
 		// These scripts can be loaded as late as necessary
 		script(type="text/javascript", src="lib/vendor/bootstrap-scrollspy.js")
