@@ -43,6 +43,10 @@ $(BUILDEX)/%/code.coffee: $(LIBEX)/%/code.coffee
 $(BUILDEX)/%/text.html: $(LIBEX)/%/text.md
 	markdown < $< > $@
 
+js:
+	mkdir -p $(BUILD)
+	coffee -o $(BUILD)/ -c lib/myelin.coffee
+
 clean:
 	rm index.html -f
 	rm $(BUILD) -rf
