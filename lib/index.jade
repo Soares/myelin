@@ -74,5 +74,38 @@ html
 							If you need even more flexibility, you can define your own handler and override the
 							`get`, `set`, `clean`, and `render` functions, as **Blue Button** does above.
 
+			section#behavior
+				.page-header
+					h1 Behavior 
+						small chalk full of sensible defaults
+				.row.text
+					.offset1.span14
+						:markdown
+							Myelin is a very intelligent linker. All links are defined within the view's `el`. Links are
+							also delegated, so any dynamically added elements will automatically be synced.
+							You can switch out the model or the el at any time, but you have to call `view.link()` to
+							update all of the links.
+
+							If you don't provide your own handler, Myelin dynamically chooses one for you. Myelin handles
+							checkboxes, radio buttons, submit buttons, and so on with some sensible defaults. Myelin also
+							chooses handlers dynamically _at event time_. That means that you could say
+							`sync: {field: '.username'}`, and the Input handler will be used for `input.username` while
+							the Span handler will be used for `span.username`.
+
+			section#resources
+				.page-header
+					h1 Resources 
+						small the shoulders of giants and what-not
+				.row.text
+					.offset1.span14
+						:markdown
+							Myelin is built with the lovable [coffeescript](http://jashkenas.github.com/coffee-script)
+							and makes use of the incredible [underscore.js](http://documentcloud.github.com/underscore).
+							Obviously, myelin couldn't exist withuot [backbone.js](http://documentcloud.github.com/backbone).
+							If you want to learn more, the [documentation](http://github.com/Soares/myelin)
+							and [annotated source](docs/myelin.html) are waiting.
+
+							Have fun, log bugs, send feedback!
+
 		// These scripts can be loaded as late as necessary
 		script(type="text/javascript", src="lib/vendor/bootstrap-scrollspy.js")

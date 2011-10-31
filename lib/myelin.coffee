@@ -358,8 +358,10 @@ class View extends Backbone.View
         @updateAxons()
         @link()
 
+    # Call this to update (or create) the axons that preform the linking.
+    # Any old axons on the view will be told to stop working.
     updateAxons: =>
-        for axon in @axons
+        for axon in @axons or []
             axon.assignScope(null)
             axon.assignModel(null)
         @axons = (new Parser).parse(@sync).axons
