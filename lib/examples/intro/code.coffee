@@ -1,6 +1,6 @@
 # This is a handler, used to specify complex behavior.
 # We'll be using this one for the blue button.
-class UpperHandler extends myelin.Button
+class Uppercaser extends myelin.Button
   clean: (str) -> str?.toUpperCase()
 
 # A myelin.View is a Backbone.View with a 'sync' field.
@@ -10,7 +10,7 @@ class IntroView extends myelin.View
     field: [            # sync to the 'field' attribute
       'keyup input.red' # use keyup for the red input
       'input.green'     # use the defaults for green
-      {selector: 'button.blue', handler: UpperHandler}
+      {selector: 'button.blue', handler: Uppercaser}
       'span.cyan'       # use the defaults for cyan
     ]
 
