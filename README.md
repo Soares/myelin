@@ -52,6 +52,10 @@ an `el` property and a `model` property set. You are welcome to set these
 any time after view creation and change them on the fly, so long as you call
 view.link() any time you change `el` or `model`.
 
+You can even change the `sync` attribute, although it's not quite so easy.
+If you update the `sync` object, you'll have to call `view.updateAxons` before
+the changes take effect.
+
 The `sync` property describes links between forms and models in a number of
 formats. Before we go over the different formats for links, you must understand
 how links works. Each link consists of three parts: an __attribute__, a

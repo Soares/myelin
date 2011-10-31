@@ -349,16 +349,22 @@ class Parser
 
 
 # The myelin view. Makes axons based on the `sync` field in order to sync
-# between the DOM and models. `sync` can be a number of types. See README.md
+# between the DOM and models. `sync` can be a number of types. See the README
 # for more details.
 class View extends Backbone.View
     constructor: (options) ->
         if options.model then @model = options.model
         super
+        @updateAxons()
         @link()
 
-    link: (options) =>
+    updateAxons: =>
+        for axon in @axons
+            axon.assignScope(null)
+            axon.assignModel(null)
         @axons = (new Parser).parse(@sync).axons
+
+    link: (options) =>
         @model = options?.model or @model
         @el = options?.el or @el
         for axon in @axons
