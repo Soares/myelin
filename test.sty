@@ -1,0 +1,186 @@
+body
+  padding-top 39px
+
+
+#colors div
+  &.red
+    background #f00
+  &.amber
+    background #ff0
+  &.green
+    background #0f0
+  &.cyan
+    background #0ff
+  &.blue
+    background #00f
+  &.magenta
+    background #f0f
+
+.example
+  input, span, small, p
+    display block
+    border-width 3px
+
+  input
+    border-radius 5px
+    padding 4px
+
+    &.red
+      background #f88
+      border-color #f44
+      color black
+    &.amber
+      background #ff8
+      border-color #ff4
+      color black
+    &.green
+      background #8f8
+      border-color #4f4
+      color black
+    &.cyan
+      background #8ff
+      border-color #4ff
+      color black
+    &.blue
+      background #88f
+      border-color #44f
+      color white
+    &.magenta
+      background #f8f
+      border-color #f4f
+      color black
+
+  input::-webkit-input-placeholder
+    font-weight bold
+    opacity .25
+
+  input.red::-webkit-input-placeholder
+    color #c66
+  input.amber::-webkit-input-placeholder
+    color #884
+  input.green::-webkit-input-placeholder
+    color #6A6
+  input.cyan::-webkit-input-placeholder
+    color #488
+  input.blue::-webkit-input-placeholder
+    color #66f
+  input.magenta::-webkit-input-placeholder
+    color #a6a
+
+  input:-moz-placeholder
+    font-weight bold
+
+  input.red:-moz-placeholder
+    color #c66
+  input.amber:-moz-placeholder
+    color #884
+  input.green:-moz-placeholder
+    color #6A6
+  input.cyan:-moz-placeholder
+    color #488
+  input.blue:-moz-placeholder
+    color #66f
+  input.magenta:-moz-placeholder
+    color #a6a
+
+  span
+    border-style solid
+    border-radius 5px
+    height 1em
+    line-height 1em
+    padding 6px
+    text-align center
+    &.red
+      background #f44
+      border-color #f88
+      color black
+    &.amber
+      background #ff4
+      border-color #ff8
+      color black
+    &.green
+      background #4f4
+      border-color #8f8
+      color black
+    &.cyan
+      background #4ff
+      border-color #8ff
+      color black
+    &.blue
+      background #44f
+      border-color #88f
+      color white
+    &.magenta
+      background #f4f
+      border-color #f8f
+      color black
+
+  small, p
+    &.red
+      color #c00
+    &.amber
+      color #660
+    &.green
+      color #080
+    &.cyan
+      color #066
+    &.blue
+      color #00f
+    &.magenta
+      color #a0a
+
+  small
+    font-size 80%
+    padding 2px
+    display block
+    line-height 1.6
+    text-align center
+    margin-bottom 5em
+    code
+      font-size 100%
+      font-family monospace
+      color inherit
+      background inherit
+      padding 0
+
+#colors
+  height 100px
+  opacity .5
+  float left
+
+  div
+    float left
+  .red
+    width 40px
+    height 87px
+  .amber
+    width 35px
+    height 77px
+  .green
+    width 30px
+    height 67px
+  .cyan
+    width 25px
+    height 57px
+  .blue
+    width 20px
+    height 47px
+  .magenta
+    width 15px
+    height 37px
+
+
+#overview
+  padding 2em
+  background #336
+  margin-bottom 20px
+
+  h1
+    margin-bottom 0
+    color white
+
+  .container
+    text-align center
+
+.row.text
+  margin-bottom 3em
