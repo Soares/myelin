@@ -8,10 +8,10 @@ class Uppercaser extends myelin.Button
 class IntroView extends myelin.View
   sync:
     field: [            # sync to the 'field' attribute
-      'keyup input.red' # use keyup for the red input
-      'input.green'     # use the defaults for green
-      {selector: 'button.blue', handler: Uppercaser}
-      'span.cyan'       # use the defaults for cyan
+      # 'keyup input.red' # use keyup for the red input
+      # 'input.green'     # use the defaults for green
+      # {selector: 'button.blue', handler: Uppercaser}
+      # 'span.cyan'       # use the defaults for cyan
     ]
 
 # The view must have both 'el' and 'model'.
