@@ -157,8 +157,8 @@ __myelin.Password is not intended for production use.__
 
 ### Button
 
-Like Input, but `domEvent` is "click" and `modelEvent` is `false`. Buttons, by
-default, do not update to match model attributes.
+Button elements don't visually display their data, but rather store it using
+jQuery.data on the 'value' field. Buttons push stored data on the click event.
 
 ### Submit
 
