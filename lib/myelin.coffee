@@ -77,18 +77,15 @@ class Input extends Handler
 class ImmediateInput extends Input
     domEvent: 'keyup'
 
-# An Input handler that responds to click events and ignores the model
-# The common use pattern for buttons is to have a number of buttons with
-# different values, and clicking each button sets that button's value on the
-# model. As such, buttons must ignore changes on the model, or all of the
-# buttons will sync to the model the moment one of them is clicked.
+# An Input handler that does not visually store the data.
+# Button handlers store the data behind-the-scenes, and operate
+# on that data when clicked. To change the behavior of the button
+# when clicked, provide a custom Button handler with an overriden
+# 'clean' method.
 class Button extends Input
+    get: (el) -> el.data('value')
+    set: (el, value) -> el.data('value', value)
     domEvent: 'click'
-    modelEvent: false
-    get: (el) ->
-        if el.is('button') then el.html() else el.val()
-    set: (el, value) ->
-        if el.is('button') then el.html(value) else el.val(value)
 
 # An Input handler for submit buttons. It works just like Button, but also
 # prevents the default DOM event, which would submit a form.
