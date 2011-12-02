@@ -25,7 +25,6 @@ body {
 .example p,
 .example button {
   display: block;
-  box-sizing: border-box;
 }
 .example input,
 .example button {
